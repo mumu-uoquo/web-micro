@@ -1,0 +1,24 @@
+server {
+    listen 7101;
+    server_name localhost;
+
+    root /usr/share/nginx/html/app-platform;
+    index index.html;
+
+    # CORS headers required by qiankun cross-origin loading
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+    add_header Access-Control-Allow-Headers 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+
+    # Static assets — served directly, long-lived cache
+    location ~* \.(js|css|png|jpg|ico|woff|woff2)$ {
+        try_files $uri =404;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # All other requests (non-static-asset) — history-mode fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

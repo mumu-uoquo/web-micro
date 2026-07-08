@@ -1,0 +1,52 @@
+/**
+ * 全局标准布局样式
+ */
+
+.page-container {
+  padding: var(--page-padding);
+}
+
+.page-aside {
+  margin-bottom: var(--page-gap);
+
+  @media (min-width: 992px) {
+    margin-bottom: 0;
+  }
+}
+
+.page-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+}
+
+.page-search {
+  margin-bottom: var(--page-gap);
+
+  .el-card__body {
+    padding: 14px 16px 4px;
+  }
+
+  .el-form-item {
+    margin-bottom: 10px;
+  }
+}
+
+.page-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--page-gap);
+
+  &__left,
+  &__right {
+    display: flex;
+    gap: 8px;
+  }
+}

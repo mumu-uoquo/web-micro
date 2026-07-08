@@ -1,0 +1,6 @@
+packages:
+  - 'packages/*'
+allowBuilds:
+  '@parcel/watcher': true
+  es5-ext: set this to true or false
+  esbuild: true

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+stats.html
+build*.zip
+
+# Local env files
+*.local
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lint cache
+.eslintcache
+.stylelintcache
+
+# Lock files (use pnpm)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Local history
+.history

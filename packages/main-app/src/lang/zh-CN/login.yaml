@@ -1,0 +1,106 @@
+# 登录页面
+
+# ── index.vue ──────────────────────────────────
+themeToggle: "主题切换"
+languageToggle: "语言切换"
+otherLoginMethods: "其他登录方式"
+accountLogin: "账号密码登录"
+phoneLogin: "手机号登录"
+wechatLogin: "微信扫码登录"
+wecomLogin: "企业微信扫码登录"
+emergencyLogin: "紧急登录"
+
+# ── 共享（多组件使用） ────────────────────────────
+login: "登 录"
+rememberMe: "记住我"
+capsLock: "大写锁定已打开"
+captchaCode: "图形验证码"
+phone: "手机号"
+smsCode: "短信验证码"
+sendCode: "获取短信码"
+codeSent: "验证码已发送"
+backToAccount: "返回重新登录"
+
+# ── 表单校验消息 ──────────────────────────────────
+message:
+  username:
+    required: "请输入用户名"
+  password:
+    required: "请输入密码"
+    min: "密码不能少于6位"
+    confirm: "请再次确认密码"
+    inconformity: "两次密码输入不一致"
+  captchaCode:
+    required: "请输入验证码"
+  phone:
+    required: "请输入手机号"
+    invalid: "请输入正确的手机号格式"
+  smsCode:
+    required: "请输入短信验证码"
+  agree:
+    required: "请阅读并同意用户协议"
+  newPassword:
+    required: "请输入新密码"
+
+# ── AccountForm ───────────────────────────────────
+account:
+  username: "用户名"
+  password: "密码"
+  forgetPassword: "忘记密码"
+  noAccount: "您没有账号？"
+  reg: "注 册"
+
+# ── BindForm ──────────────────────────────────────
+bind:
+  title: "绑定账号"
+  desc: "未找到关联账号，绑定已有账号后即可完成登录"
+  accountPlaceholder: "请输入账号"
+  passwordPlaceholder: "请输入密码"
+  submit: "绑定并登录"
+  success: "绑定成功"
+  message:
+    account:
+      required: "请输入账号"
+    password:
+      required: "请输入密码"
+
+# ── EmergencyForm ─────────────────────────────────
+emerg:
+  alert: "仅通过账号和 MFA 动态口令校验，连续 5 次出错将封禁 24 小时，请谨慎使用"
+  username: "用户名"
+  totpCode: "MFA 动态口令"
+  message:
+    totpCode:
+      required: "请输入动态验证码"
+      invalid: "请输入 6 位数字验证码"
+
+# ── MfaForm ───────────────────────────────────────
+mfa:
+  title: "MFA 验证"
+
+# ── WechatQrCode / WecomQrCode ────────────────────
+qr:
+  expired: "二维码已失效"
+  clickRefresh: "点击刷新"
+
+# ── Register ──────────────────────────────────────
+register:
+  title: "注 册"
+  realName: "真实姓名"
+  realNamePlaceholder: "选填，用于消息通知"
+  usernamePlaceholder: "字母开头，2~20位字母、数字、下划线、中横线"
+  submit: "注册账号"
+  success: "注册成功，请登录"
+  agree: "我已同意并阅读"
+  userAgreement: "用户协议"
+  haveAccount: "已有账号？"
+  userNameRule: "2~20位，字母开头，只能包含字母、数字、下划线、中横线"
+  quickFill: "快速填写"
+
+# ── ResetPwd ──────────────────────────────────────
+resetPwd:
+  title: "重置密码"
+  thinkOfPasswd: "想起密码？"
+  newPassword: "新密码"
+  confirmPassword: "确认密码"
+  success: "密码重置成功，请使用新密码登录"

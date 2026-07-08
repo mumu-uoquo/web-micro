@@ -1,0 +1,43 @@
+/**
+ * Tenant 租户类型定义
+ */
+
+/** 基础查询参数 */
+export interface BaseQueryParams {
+  /** 页码 */
+  pageNum: number;
+  /** 每页记录数 */
+  pageSize: number;
+  /** 排序字段 */
+  sortBy?: string;
+  /** 排序方式（正序:ASC；反序:DESC） */
+  order?: string;
+}
+
+/** 租户信息 */
+export interface TenantInfo {
+  /** 租户ID */
+  id: number;
+  /** 租户名称 */
+  name: string;
+  /** 租户域名 */
+  domain?: string;
+}
+
+/** 租户分页查询参数 */
+export interface TenantQueryParams extends BaseQueryParams {
+  /** 关键字(租户名称/租户编码/域名) */
+  keywords?: string;
+  /** 租户状态(1-正常 0-禁用) */
+  status?: number;
+}
+
+/** 新增租户结果 */
+export interface TenantCreateResult {
+  tenantId?: string;
+  tenantCode?: string;
+  tenantName?: string;
+  adminUsername?: string;
+  adminInitialPassword?: string;
+  adminRoleCode?: string;
+}

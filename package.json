@@ -1,0 +1,19 @@
+{
+  "name": "@web-micro/root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build:shared": "pnpm --filter @web-micro/shared build",
+    "build:sub": "pnpm --filter @web-micro/app-platform build",
+    "build:main": "pnpm --filter @web-micro/main-app build",
+    "build:all": "pnpm run build:shared && pnpm run build:sub && pnpm run build:main",
+    "dev:main": "pnpm --filter @web-micro/main-app dev",
+    "dev:sub": "pnpm --filter @web-micro/app-platform dev"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "pnpm": ">=7.0.0"
+  }
+}

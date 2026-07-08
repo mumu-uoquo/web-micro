@@ -1,0 +1,105 @@
+# Login page
+
+# ── index.vue ──────────────────────────────────
+themeToggle: "Theme Switch"
+languageToggle: "Language Switch"
+otherLoginMethods: "Other login methods"
+accountLogin: "Account Login"
+phoneLogin: "Phone Login"
+wechatLogin: "WeChat QR Login"
+wecomLogin: "WeCom QR Login"
+emergencyLogin: "Emergency Login"
+
+# ── Shared (used by multiple components) ─────────
+login: "Login"
+rememberMe: "Remember Me"
+capsLock: "Caps Lock is On"
+captchaCode: "Verify Code"
+phone: "Phone Number"
+smsCode: "SMS Code"
+sendCode: "Send Code"
+codeSent: "Code sent successfully"
+backToAccount: "Back to login"
+
+# ── Validation messages ───────────────────────────
+message:
+  username:
+    required: "Please enter Username"
+  password:
+    required: "Please enter Password"
+    min: "The password can not be less than 6 digits"
+    confirm: "Please confirm the password again"
+    inconformity: "The two password entries are inconsistent"
+  captchaCode:
+    required: "Please enter Verify Code"
+  phone:
+    required: "Please enter phone number"
+    invalid: "Please enter a valid phone number"
+  smsCode:
+    required: "Please enter SMS code"
+  agree:
+    required: "Please read and agree to the User Agreement"
+  newPassword:
+    required: "Please enter a new password"
+
+# ── AccountForm ───────────────────────────────────
+account:
+  username: "Username"
+  password: "Password"
+  forgetPassword: "Forget Password"
+  noAccount: "Don't have an account?"
+  reg: "Register"
+
+# ── BindForm ──────────────────────────────────────
+bind:
+  title: "Bind Account"
+  desc: "No linked account found. Bind an existing account to complete login."
+  accountPlaceholder: "Please enter account"
+  passwordPlaceholder: "Please enter password"
+  submit: "Bind & Login"
+  success: "Account bound successfully"
+  message:
+    account:
+      required: "Please enter account"
+    password:
+      required: "Please enter password"
+
+# ── EmergencyForm ─────────────────────────────────
+emerg:
+  alert: "Only account and MFA code are verified. 5 consecutive failures will ban for 24 hours. Use with caution."
+  totpCode: "MFA Dynamic Code"
+  message:
+    totpCode:
+      required: "Please enter the dynamic code"
+      invalid: "Please enter a 6-digit numeric code"
+
+# ── MfaForm ───────────────────────────────────────
+mfa:
+  title: "MFA Verification"
+
+# ── WechatQrCode / WecomQrCode ────────────────────
+qr:
+  expired: "QR code expired"
+  clickRefresh: "Click to refresh"
+
+# ── Register ──────────────────────────────────────
+register:
+  title: "Register"
+  realName: "Real Name"
+  realNamePlaceholder: "Optional, used for notifications"
+  usernamePlaceholder: "Start with a letter, 2-20 chars: letters, digits, _ or -"
+  submit: "Register account"
+  success: "Registration successful, please log in"
+  agree: "I have read and agree to the"
+  userAgreement: "User Agreement"
+  haveAccount: "Already have an account?"
+  userNameRule: "2-20 chars, start with a letter, only letters, digits, _ and -"
+  quickFill: "Quick fill"
+
+# ── ResetPwd ──────────────────────────────────────
+resetPwd:
+  title: "Reset Password"
+  thinkOfPasswd: "Remember your password?"
+  newPassword: "New Password"
+  confirmPassword: "Confirm Password"
+  success: "Password reset successful, please log in with the new password"
