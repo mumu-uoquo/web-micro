@@ -1,5 +1,5 @@
 import { defineConfig } from 'rollup'
-import typescript from 'rollup-plugin-typescript2'
+import typescript from '@rollup/plugin-typescript'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 
@@ -13,7 +13,6 @@ export default defineConfig([
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        useTsconfigDeclarationDir: true,
       }),
     ],
     external: ['axios', 'crypto-js', 'jsencrypt', 'vue-router'],
@@ -27,13 +26,8 @@ export default defineConfig([
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        useTsconfigDeclarationDir: true,
-        // 第二次编译跳过声明文件生成（避免重复）
-        tsconfigOverride: {
-          compilerOptions: {
-            declaration: false,
-          },
-        },
+        declaration: false,
+        declarationDir: undefined,
       }),
     ],
     external: ['axios', 'crypto-js', 'jsencrypt', 'vue-router'],
