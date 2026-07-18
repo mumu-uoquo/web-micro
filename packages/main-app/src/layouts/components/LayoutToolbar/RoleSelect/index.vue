@@ -17,6 +17,9 @@
         <span class="tenant-switcher__label">{{ currentRoleName }}</span>
         <el-icon class="tenant-switcher__icon"><ArrowDown /></el-icon>
       </div>
+      <!-- 仅显示图标
+      <el-icon><Money /></el-icon>
+      -->
       <template #dropdown>
         <el-dropdown-menu class="tenant-switcher__menu">
           <el-dropdown-item
@@ -41,8 +44,11 @@ import type { UserAuthDto, UserRoleDto } from "@/api/auth";
 const userStore = useUserStore();
 const router = useRouter();
 
+// 当前用户
 const userInfo = ref<UserAuthDto>({ id: "", instituteId: "" });
+// 当前的角色名称
 const currentRoleName = ref<string | undefined>("");
+// 拥有的角色列表
 const roleList = ref<UserRoleDto[]>([]);
 
 /**
@@ -69,6 +75,10 @@ function handleRoleChangeClick(roleId: string) {
   });
 }
 
+/* ***************************** 监听器等（需放在最后） ********************************* */
+/**
+ * 页面加载时
+ */
 onMounted(() => {
   refreshUserInfo();
 });

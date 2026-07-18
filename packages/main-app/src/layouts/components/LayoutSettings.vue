@@ -48,6 +48,13 @@
           <el-switch v-model="settingsStore.showAppLogo" />
         </div>
 
+        <!-- 调整到系统级配置，不开放给用户选择
+        <div class="config-item flex-x-between">
+          <span class="text-xs">{{ t("settings.showWatermark") }}</span>
+          <el-switch v-model="settingsStore.showWatermark" />
+        </div>
+        -->
+
         <div class="config-item flex-x-between">
           <span class="text-xs">{{ t("settings.pageSwitchingAnimation") }}</span>
           <el-select v-model="settingsStore.pageSwitchingAnimation" style="width: 150px">
@@ -134,6 +141,22 @@
     <!-- 操作按钮区域 - 固定到底部 -->
     <template #footer>
       <div class="action-buttons">
+        <!-- 
+        <el-tooltip
+          content="复制配置将生成当前设置的代码，覆盖到 `src/settings.ts` 下的 `defaultSettings` 变量"
+          placement="top"
+        >
+          <el-button
+            type="primary"
+            size="default"
+            :icon="copyIcon"
+            :loading="copyLoading"
+            @click="handleCopySettings"
+          >
+            {{ copyLoading ? "复制中..." : t("settings.copyConfig") }}
+          </el-button>
+        </el-tooltip>
+        -->
         <el-tooltip content="重置将恢复所有设置为默认值" placement="top">
           <el-button
             type="warning"
@@ -162,9 +185,11 @@ import { themeColorPresets } from "@/settings";
 const pageSwitchingAnimationOptions: Record<string, OptionItem> = PageSwitchingAnimationOptions;
 
 // 按钮图标
+const copyIcon = markRaw(DocumentCopy);
 const resetIcon = markRaw(RefreshLeft);
 
 // 加载状态
+const copyLoading = ref(false);
 const resetLoading = ref(false);
 
 // 布局选项配置
@@ -207,6 +232,8 @@ const drawerVisible = computed({
 
 /**
  * 更改侧边栏颜色
+ *
+ * @param val 颜色方案名称
  */
 const changeSidebarColor = (val: any) => {
   settingsStore.sidebarColorScheme = val;
@@ -214,11 +241,38 @@ const changeSidebarColor = (val: any) => {
 
 /**
  * 切换布局
+ *
+ * @param layout - 布局模式
  */
 const handleLayoutChange = (layout: LayoutMode) => {
   if (settingsStore.layout === layout) return;
 
   settingsStore.layout = layout;
+};
+
+/**
+ * 复制当前配置
+ */
+const handleCopySettings = async () => {
+  try {
+    copyLoading.value = true;
+
+    // 生成配置代码
+    const configCode = generateSettingsCode();
+
+    // 复制到剪贴板
+    await navigator.clipboard.writeText(configCode);
+
+    // 显示成功消息
+    ElMessage.success({
+      message: t("settings.copySuccess"),
+      duration: 3000,
+    });
+  } catch {
+    ElMessage.error("复制配置失败");
+  } finally {
+    copyLoading.value = false;
+  }
 };
 
 /**
@@ -238,6 +292,43 @@ const handleResetSettings = async () => {
   } finally {
     resetLoading.value = false;
   }
+};
+
+/**
+ * 生成配置代码字符串
+ */
+const generateSettingsCode = (): string => {
+  const settings = {
+    title: "pkg.name",
+    version: "pkg.version",
+    showSettings: true,
+    showTagsView: settingsStore.showTagsView,
+    showAppLogo: settingsStore.showAppLogo,
+    layout: `LayoutMode.${settingsStore.layout.toUpperCase()}`,
+    theme: `ThemeMode.${settingsStore.theme.toUpperCase()}`,
+    size: "ComponentSize.DEFAULT",
+    language: "LanguageEnum.ZH_CN",
+    themeColor: `"${settingsStore.themeColor}"`,
+    showWatermark: settingsStore.showWatermark,
+    watermarkContent: "pkg.name",
+    sidebarColorScheme: `SidebarColor.${settingsStore.sidebarColorScheme.toUpperCase().replace("-", "_")}`,
+  };
+
+  return `const defaultSettings: AppSettings = {
+  title: ${settings.title},
+  version: ${settings.version},
+  showSettings: ${settings.showSettings},
+  showTagsView: ${settings.showTagsView},
+  showAppLogo: ${settings.showAppLogo},
+  layout: ${settings.layout},
+  theme: ${settings.theme},
+  size: ${settings.size},
+  language: ${settings.language},
+  themeColor: ${settings.themeColor},
+  showWatermark: ${settings.showWatermark},
+  watermarkContent: ${settings.watermarkContent},
+  sidebarColorScheme: ${settings.sidebarColorScheme},
+};`;
 };
 
 /**
@@ -263,6 +354,7 @@ const handleCloseDrawer = () => {
 
 /* 设置内容区域 */
 .settings-content {
+  /* let drawer body control height with flex and make this area scrollable */
   flex: 1 1 auto;
   padding: 20px;
   overflow-y: auto;
@@ -282,6 +374,15 @@ const handleCloseDrawer = () => {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
     }
+  }
+}
+/* 主题切换器优化 */
+.theme-switch {
+  transform: scale(1.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.25);
   }
 }
 
@@ -339,6 +440,10 @@ const handleCloseDrawer = () => {
     );
     border-color: var(--el-color-primary-light-3);
     transform: translateY(-4px) scale(1.05);
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(1.02);
   }
 
   .layout-preview {
@@ -465,6 +570,13 @@ const handleCloseDrawer = () => {
       font-weight: 600;
       color: var(--el-color-primary);
     }
+  }
+}
+
+:deep(.copy-config-dialog) {
+  .el-message-box__content {
+    max-height: 400px;
+    overflow-y: auto;
   }
 }
 </style>

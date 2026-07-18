@@ -38,7 +38,7 @@
       </div>
     </template>
 
-    <!-- 小屏：消息入口 -->
+    <!-- 小屏：消息入口（仅显示图标和数量，点击跳转消息页） -->
     <template v-if="!isDesktop">
       <div class="navbar-actions__item">
         <NoticeDropdown :mobile="true" />
@@ -49,6 +49,15 @@
     <div class="navbar-actions__item">
       <el-dropdown trigger="click">
         <div class="user-profile" @click="refreshUserInfo">
+          <!--
+          <div style="width: 28px; height: 28px; overflow: hidden; border-radius: 50%">
+            <img
+              :src="userInfo.avatar"
+              class="user-profile__avatar"
+              style="width: 100%; height: 100%; object-fit: cover; object-position: center"
+            />
+          </div>
+          -->
           <el-avatar
             :size="25"
             :src="userInfo.avatar ?? defaultAvatar"
@@ -115,6 +124,7 @@ const router = useRouter();
 const isDesktop = computed(() => appStore.device === DeviceEnum.DESKTOP);
 
 /* ***************************** 多租户 ********************************* */
+// 是否显示租户选择
 const canSwitchTenant = computed(() => (userStore.userInfo as any)?.canSwitchTenant === true);
 const showTenantSwitcher = computed(() => {
   if (!canSwitchTenant.value) {
@@ -138,14 +148,22 @@ function handleTenantChange(tenantId: number) {
 }
 
 /* ***************************** 用户信息 ********************************* */
+// 默认头像
 const defaultAvatar = ref(new URL("@/assets/images/avatar-default.png", import.meta.url).href);
+// 当前用户
 const userInfo = ref<UserAuthDto>({ id: "", instituteId: "" });
+// // 当前的角色名称
+// const currentRoleName = ref<string | undefined>("");
+// 拥有的角色列表
 const roleList = ref<UserRoleDto[]>([]);
 /**
  * 刷新用户信息
  */
 async function refreshUserInfo() {
   userInfo.value = await userStore.getUserInfo();
+  // currentRoleName.value = userInfo.value.roleList?.find(
+  //   (item: UserRoleDto) => item.id === userInfo.value.currentRoleId
+  // )?.roleName;
   roleList.value = userInfo.value.roleList ? userInfo.value.roleList : [];
 }
 
@@ -174,9 +192,11 @@ function logout() {
     type: "warning",
     lockScroll: false,
   }).then(() => {
-    // 断开 SSE 连接
+    // 断开 SSE 连接（事件订阅由各组件自行 cleanup）
     disconnectSse();
     userStore.logout().finally(() => {
+      // 无论退出接口是否正常响应，都跳转到登录页面
+      // 若当前已在 404/401 等错误页，退出后不再跳回错误页
       const redirect = ["/404", "/401"].includes(route.path) ? "/" : route.fullPath;
       router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
     });
@@ -184,14 +204,20 @@ function logout() {
 }
 
 /* ***************************** 动态样式 ********************************* */
+// 根据主题和侧边栏配色方案选择样式类
 const navbarActionsClass = computed(() => {
   const { resolvedTheme, sidebarColorScheme, layout } = settingStore;
 
+  // 暗黑主题下，所有布局都使用白色文字
   if (resolvedTheme === ThemeMode.DARK) {
     return "navbar-actions--white-text";
   }
 
+  // 明亮主题下
   if (resolvedTheme === ThemeMode.LIGHT) {
+    // 顶部布局和混合布局的顶部区域：
+    // - 如果侧边栏是经典蓝色，使用白色文字
+    // - 如果侧边栏是极简白色，使用深色文字
     if (layout === LayoutMode.TOP || layout === LayoutMode.MIX) {
       if (sidebarColorScheme === SidebarColor.CLASSIC_BLUE) {
         return "navbar-actions--white-text";
@@ -212,6 +238,9 @@ function handleSettingsClick() {
 }
 
 /* ***************************** 监听器等（需放在最后） ********************************* */
+/**
+ * 页面加载时
+ */
 onMounted(() => {
   refreshUserInfo();
 });
@@ -228,19 +257,21 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;
+    min-width: 44px; /* 增加最小点击区域到44px，符合人机交互标准 */
     height: 44px;
     padding: 0 8px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
 
+    // 只对需要居中的子元素生效，不使用通配符避免影响选择器组件
     > [class^="i-svg:"] {
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
+    // 确保 Element Plus 组件可以正常工作
     :deep(.el-dropdown),
     :deep(.el-tooltip) {
       display: flex;
@@ -259,6 +290,7 @@ onMounted(() => {
       background-size: 16px 16px;
     }
 
+    // 图标样式
     :deep([class^="i-svg:"]) {
       font-size: 16px;
       line-height: 1;
@@ -298,7 +330,7 @@ onMounted(() => {
   }
 }
 
-// 白色文字样式
+// 白色文字样式（用于深色背景：暗黑主题、顶部布局、混合布局等）
 .navbar-actions--white-text {
   .navbar-actions__item {
     :deep([class^="i-svg:"]) {
@@ -318,6 +350,7 @@ onMounted(() => {
     color: color-mix(in srgb, var(--el-color-white) 85%, transparent);
   }
 
+  // 租户选择器在白色文字模式下的样式
   ::v-deep(.tenant-switcher__trigger) {
     color: color-mix(in srgb, var(--el-color-white) 85%, transparent);
   }
@@ -333,7 +366,7 @@ onMounted(() => {
   }
 }
 
-// 深色文字样式
+// 深色文字样式（用于浅色背景：明亮主题下的左侧布局等）
 .navbar-actions--dark-text {
   .navbar-actions__item {
     :deep([class^="i-svg:"]) {
@@ -353,6 +386,7 @@ onMounted(() => {
     color: var(--el-text-color-regular) !important;
   }
 
+  // 租户选择器在深色文字模式下的样式
   ::v-deep(.tenant-switcher__trigger) {
     color: var(--el-text-color-regular) !important;
   }
@@ -368,6 +402,7 @@ onMounted(() => {
   }
 }
 
+// 确保下拉菜单中的图标不受影响
 ::v-deep(.el-dropdown-menu) {
   [class^="i-svg:"] {
     color: var(--el-text-color-regular) !important;

@@ -120,6 +120,8 @@ function resolveFullPath(routePath: string) {
 
 /**
  * 打开菜单
+ *
+ * @param index 当前展开的菜单项索引
  */
 const onMenuOpen = (index: string) => {
   expandedMenuIndexes.value.push(index);
@@ -127,6 +129,8 @@ const onMenuOpen = (index: string) => {
 
 /**
  * 关闭菜单
+ *
+ * @param index 当前收起的菜单项索引
  */
 const onMenuClose = (index: string) => {
   expandedMenuIndexes.value = expandedMenuIndexes.value.filter((item) => item !== index);
@@ -143,7 +147,8 @@ watch(
 );
 
 /**
- * 监听菜单模式变化
+ * 监听菜单模式变化：当菜单模式切换为水平模式时，关闭所有展开的菜单项
+ * 避免在水平模式下菜单项显示错位
  */
 watch(
   () => props.menuMode,
@@ -211,14 +216,17 @@ function updateParentMenuStyles() {
       } else {
         // 水平模式下可能需要特殊处理
         if (props.menuMode === "horizontal") {
+          // 对于水平菜单，使用路径匹配来找到父菜单
           const currentPath = activeMenuPath.value;
 
+          // 查找所有父菜单项，检查哪个包含当前路径
           allSubMenus.forEach((subMenu) => {
             const subMenuEl = subMenu as HTMLElement;
             const subMenuPath =
               subMenuEl.getAttribute("data-path") ||
               subMenuEl.querySelector(".el-sub-menu__title")?.getAttribute("data-path");
 
+            // 如果找到包含当前路径的父菜单，则添加激活类
             if (subMenuPath && currentPath.startsWith(subMenuPath)) {
               subMenuEl.classList.add("has-active-child");
             }
@@ -235,6 +243,7 @@ function updateParentMenuStyles() {
  * 组件挂载后立即更新父菜单样式
  */
 onMounted(() => {
+  // 确保在组件挂载后更新样式，不依赖于异步操作
   updateParentMenuStyles();
 });
 </script>

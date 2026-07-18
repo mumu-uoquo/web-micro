@@ -214,6 +214,11 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       reportCompressedSize: false,
       cssMinify: "lightningcss",
       rolldownOptions: {
+        onwarn(warning, warn) {
+          // @vueuse/core 的 #__PURE__ 注释位置不符合 Rolldown 规范，属已知兼容问题，忽略即可
+          if (warning.code === "INVALID_ANNOTATION") return;
+          warn(warning);
+        },
         output: {
           entryFileNames: "js/[name].[hash].js",
           chunkFileNames: "js/[name].[hash].js",

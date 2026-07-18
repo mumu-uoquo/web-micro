@@ -46,6 +46,7 @@ const props = defineProps({
  */
 const removeHtmlTagsWithRegex = (str: string): string => {
   if (!str || typeof str !== "string") return "";
+  // 正则匹配所有 HTML 标签，替换为空字符串
   return str.replace(/<[^>]+>/g, "");
 };
 
@@ -58,6 +59,7 @@ function handleShowDetail(messageId: string) {
 </script>
 
 <style lang="scss" scoped>
+// 亮色模式
 .notice-container {
   display: flex;
   align-items: flex-start;

@@ -1,8 +1,7 @@
 import { store } from "@/stores";
 import TenantAPI from "@/api/system/tenant";
 import type { TenantInfo } from "@/api/system/tenant";
-import { STORAGE_KEYS } from "@/constants";
-import { AuthStorage } from "@web-micro/shared";
+import { STORAGE_KEYS } from "@web-micro/shared";
 
 /**
  * 租户 Store

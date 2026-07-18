@@ -19,7 +19,3 @@ export function disconnectSse() {
 export { useSse, cleanupSse, SseConnectionState } from "./useSse";
 export { useNoticeSync } from "./useNoticeSync";
 export type { NoticeCallback } from "./useNoticeSync";
-export { useDictSync } from "./useDictSync";
-export type { DictChangeCallback, DictChangeMessage } from "./useDictSync";
-export { useOnlineCount } from "./useOnlineCount";
-export { useFetchEventSource, useDefaultEventSource, ConnectStatus } from "./useEventSource";

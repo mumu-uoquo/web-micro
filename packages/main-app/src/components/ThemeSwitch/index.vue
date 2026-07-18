@@ -1,17 +1,48 @@
 <template>
-  <el-tooltip :content="isDark ? '切换浅色模式' : '切换深色模式'" placement="bottom">
-    <el-button :icon="isDark ? 'Sunny' : 'Moon'" circle text @click="toggle" />
-  </el-tooltip>
+  <el-dropdown trigger="click" @command="handleDarkChange">
+    <el-icon :size="20">
+      <component :is="currentThemeIcon" />
+    </el-icon>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item
+          v-for="item in theneList"
+          :key="item.value"
+          :command="item.value"
+          :disabled="settingsStore.theme === item.value"
+        >
+          <el-icon>
+            <component :is="item.component" />
+          </el-icon>
+          {{ item.label }}
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
 </template>
-
 <script setup lang="ts">
 import { useSettingsStore } from "@/stores";
 import { ThemeMode } from "@/enums";
+import { Moon, Sunny, Monitor } from "@element-plus/icons-vue";
 
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
-const isDark = computed(() => settingsStore.resolvedTheme === ThemeMode.DARK);
 
-function toggle() {
-  settingsStore.theme = isDark.value ? ThemeMode.LIGHT : ThemeMode.DARK;
-}
+const theneList = [
+  { label: t("login.light"), value: ThemeMode.LIGHT, component: Sunny },
+  { label: t("login.dark"), value: ThemeMode.DARK, component: Moon },
+  { label: t("login.auto"), value: ThemeMode.AUTO, component: Monitor },
+];
+
+const currentThemeIcon = computed(() => {
+  if (settingsStore.theme === ThemeMode.AUTO) {
+    return Monitor;
+  }
+
+  return settingsStore.resolvedTheme === ThemeMode.DARK ? Moon : Sunny;
+});
+
+const handleDarkChange = (theme: ThemeMode) => {
+  settingsStore.theme = theme;
+};
 </script>

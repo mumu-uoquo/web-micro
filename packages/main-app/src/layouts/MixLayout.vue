@@ -153,6 +153,7 @@ function resolvePath(routePath: string) {
   }
   if (routePath.startsWith("/")) {
     // 若已经是/开头，表示绝对URL，不再拼接父级路径
+    //return activeTopMenuPath.value + routePath;
     return routePath;
   }
   return `${activeTopMenuPath.value}/${routePath}`;

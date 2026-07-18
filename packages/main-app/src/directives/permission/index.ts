@@ -1,7 +1,7 @@
 import type { Directive, DirectiveBinding } from "vue";
 
 import { usePermissionStore, useUserStore } from "@/stores";
-import { ROOT_ROLE_ID } from "@/constants";
+import { ROOT_ROLE_ID } from "@web-micro/shared";
 
 /**
  * 按钮权限：判断是否有指定资源的权限（指令）

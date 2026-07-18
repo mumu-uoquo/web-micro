@@ -1,6 +1,7 @@
 import { createHttpInstance } from '@web-micro/shared'
 import type { UserStoreAdapter } from '@web-micro/shared'
 import { useUserStore } from '@/stores'
+import { ElMessage } from 'element-plus'
 
 /**
  * main-app 的 UserStore 适配器
@@ -24,6 +25,7 @@ export const http = createHttpInstance(
     timeout: 15000,
   },
   userStoreAdapter,
+  (message) => ElMessage({ message: message || '系统出错', grouping: true, type: 'error' }),
 )
 
 export default http

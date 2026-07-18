@@ -22,7 +22,7 @@ import {
   EventStreamContentType,
 } from "@microsoft/fetch-event-source";
 import { AuthStorage, guid, encrypt } from "@web-micro/shared";
-import { STORAGE_KEYS } from "@/constants";
+import { STORAGE_KEYS } from "@web-micro/shared";
 import { ResultEnum } from "@/enums/system/result.enum";
 import { useUserStoreHook } from "@/stores";
 

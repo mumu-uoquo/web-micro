@@ -36,6 +36,7 @@ if (!_path) {
 function handleParams(params: LocationQuery): Record<string, string> {
   const _params = {} as Record<string, string>;
   Object.entries(params).map(([key, val]: any) => {
+    // TODO 需要处理 val 中的变量 ${}
     _params[key] = val;
   });
   return _params;
@@ -50,17 +51,26 @@ function openWindow(url: string, params: Record<string, string>) {
     url = url.startsWith("/") ? url.substring(1) : url;
     url = `${window.location.origin}/#/${url}`;
   }
+  // 当url中有#连接时，只能采用 new URLSearchParams() 的方式，
+  // 如果用 URL.searchParams.set 的方式，会自动把参数挪到井号前面
   let targetUrl = url;
   if (Object.keys(params).length > 0) {
     const queryString = new URLSearchParams(params).toString();
     targetUrl += (targetUrl.includes("?") ? "&" : "?") + queryString;
   }
+  // const targetUrl = new URL(url, window.location.origin);
+  // Object.entries(params).map(([key, value]) => {
+  //   targetUrl.searchParams.set(key, value);
+  // });
   // 2. 新窗口打开外部链接
   window.open(targetUrl, "_blank");
   // 3. 当前标签页返回前一页
   setTimeout(() => {
     if (window.history.length > 1) {
+      // 步骤1：用replaceState替换当前历史记录，覆盖掉当前页的记录
+      // 三个参数：状态对象（可传null）、标题（浏览器大多忽略，传''）、上一页的URL（可传当前上一页的实际地址，或用location.href暂存）
       window.history.replaceState(null, "", document.referrer || window.location.href);
+      // 步骤2：执行回退，此时回退后，原当前页的历史记录已被覆盖，不会保留
       router.go(-1);
     } else {
       router.replace("/");

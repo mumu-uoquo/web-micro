@@ -165,6 +165,17 @@ async function handleSubmit() {
     dialogVisible.value = false;
 
     ElMessage.success("密码修改成功");
+    // await ElMessageBox.alert("密码修改成功，请重新登录", "提示", {
+    //   confirmButtonText: "确定",
+    //   type: "success",
+    //   showClose: false,
+    // });
+    // await userStore.logout();
+    // router.push({
+    //   path: "/login",
+    //   query: { redirect: route.fullPath !== "/login" ? route.fullPath : undefined },
+    //   replace: true,
+    // });
   } finally {
     loading.value = false;
   }

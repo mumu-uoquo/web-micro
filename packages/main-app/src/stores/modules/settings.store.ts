@@ -8,7 +8,7 @@ import {
   toggleSidebarColor,
   watchSystemTheme,
 } from "@/utils/theme";
-import { STORAGE_KEYS } from "@/constants";
+import { STORAGE_KEYS } from "@web-micro/shared";
 import { defaults } from "@/settings";
 import SystemAPI from "@/api/system";
 import { decrypt } from "@web-micro/shared";

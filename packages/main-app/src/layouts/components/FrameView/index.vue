@@ -63,6 +63,7 @@ function init() {
 function handleParams(params: LocationQuery): Record<string, string> {
   const _params = {} as Record<string, string>;
   Object.entries(params).map(([key, val]: any) => {
+    // TODO 需要处理 val 中的变量 ${}
     _params[key] = val;
   });
   return _params;
@@ -79,6 +80,8 @@ function loadFrameSrc(url: string, params: Record<string, string>) {
     const queryString = new URLSearchParams(params).toString();
     url += (url.includes("?") ? "&" : "?") + queryString;
   }
+  // url += (url.includes("?") ? "&" : "?") + `t=${Date.now()}`;
+  // console.log("frame.vue loadFrameSrc:", url);
   frameSrc.value = url;
   fallbackTimer.value = window.setTimeout(() => {
     if (loading.value) {
@@ -105,6 +108,7 @@ onMounted(() => {
 });
 // 组件卸载时清理
 onUnmounted(() => {
+  // 清理 iframe 防止内存泄漏
   if (frameRef.value) {
     frameSrc.value = "about:blank";
   }

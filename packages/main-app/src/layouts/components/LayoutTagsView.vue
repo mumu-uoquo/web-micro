@@ -175,7 +175,7 @@ const currentTag = computed(() => {
   return visitedViews.value.find((tag) => tagsViewStore.isActive(tag)) || null;
 });
 
-// 图标兼容：判断是否为 Element Plus 图标
+// 图标兼容：判断是否为 Element Plus 图标 (el-icon-xxx)
 const isEpIcon = (icon: string) => icon.startsWith("el-icon");
 
 // 图标兼容：el-icon-xxx → PascalCase 组件名
@@ -227,7 +227,7 @@ const handleActionCommand = (command: string) => {
   }
 };
 
-// path → TagView 映射
+// path → TagView 映射，用于快速查找标签
 const routePathMap = computed(() => {
   const map = new Map<string, TagView>();
   visitedViews.value.forEach((tag) => {
@@ -236,7 +236,7 @@ const routePathMap = computed(() => {
   return map;
 });
 
-// 判断右键选中标签是否为最左侧
+// 判断右键选中标签是否为最左侧（不可关闭左侧）
 const isFirstView = computed(() => {
   if (!selectedTag.value) return false;
   return (
@@ -245,7 +245,7 @@ const isFirstView = computed(() => {
   );
 });
 
-// 判断右键选中标签是否为最右侧
+// 判断右键选中标签是否为最右侧（不可关闭右侧）
 const isLastView = computed(() => {
   if (!selectedTag.value) return false;
   return selectedTag.value.fullPath === visitedViews.value[visitedViews.value.length - 1]?.fullPath;
@@ -293,17 +293,23 @@ const initAffixTags = () => {
 
 const addCurrentTag = () => {
   let title = route.meta?.title || "";
+  // 如：router.push({path:"/iframe/https://www.uoquo.com"})
   if (["redirect", "iframe"].includes(title)) {
     title = route.query.title as string;
     delete route.query.title;
   }
+  // console.log("addCurrentTag", title, route.path, route.fullPath, route.meta, route.query, route);
+  // 不加入tags标签：无标题
   if (!title) {
     console.warn(`[${route.fullPath}] 没有标题，将在当前标签中加载`);
     return;
   }
+  // 不加入tags标签：重定向和弹窗
   if (["redirect", "window"].includes(route.meta.target as string)) {
     return;
   }
+  // 追加到tags标签中
+
   tagsViewStore.addView({
     name: route.name as string,
     title,
@@ -352,7 +358,7 @@ const closeContextMenu = () => {
   contextMenu.visible = false;
 };
 
-// 鼠标滚轮横向滚动
+// 鼠标滚轮横向滚动（标签栏超出可视区时生效）
 const handleScroll = (event: WheelEvent) => {
   closeContextMenu();
 
@@ -368,6 +374,7 @@ const handleScroll = (event: WheelEvent) => {
   scrollbarRef.value.setScrollLeft(newScrollLeft);
 };
 
+// 刷新指定标签页：移除缓存后跳转 redirect 中转页重新加载
 const refreshSelectedTag = (tag: TagView | null) => {
   if (!tag) return;
 
@@ -377,6 +384,7 @@ const refreshSelectedTag = (tag: TagView | null) => {
   });
 };
 
+// 关闭指定标签页，若关闭的是当前激活标签则跳转到最后一个
 const closeSelectedTag = (tag: TagView | null) => {
   if (!tag) return;
 
@@ -387,6 +395,7 @@ const closeSelectedTag = (tag: TagView | null) => {
   });
 };
 
+// 关闭当前激活标签以外的其他标签
 const closeOtherTagsForActive = () => {
   if (!currentTag.value) return;
   tagsViewStore.delOtherViews(currentTag.value).then(() => {
@@ -394,6 +403,7 @@ const closeOtherTagsForActive = () => {
   });
 };
 
+// 关闭当前激活标签左侧的所有标签
 const closeLeftTagsForActive = () => {
   if (!currentTag.value) return;
   tagsViewStore.delLeftViews(currentTag.value).then((result: any) => {
@@ -404,6 +414,7 @@ const closeLeftTagsForActive = () => {
   });
 };
 
+// 关闭当前激活标签右侧的所有标签
 const closeRightTagsForActive = () => {
   if (!currentTag.value) return;
   tagsViewStore.delRightViews(currentTag.value).then((result: any) => {
@@ -414,6 +425,7 @@ const closeRightTagsForActive = () => {
   });
 };
 
+// 关闭右键选中标签左侧的所有标签
 const closeLeftTags = () => {
   if (!selectedTag.value) return;
   tagsViewStore.delLeftViews(selectedTag.value).then((result: any) => {
@@ -424,6 +436,7 @@ const closeLeftTags = () => {
   });
 };
 
+// 关闭右键选中标签右侧的所有标签
 const closeRightTags = () => {
   if (!selectedTag.value) return;
   tagsViewStore.delRightViews(selectedTag.value).then((result: any) => {
@@ -434,6 +447,7 @@ const closeRightTags = () => {
   });
 };
 
+// 关闭右键选中标签以外的其他标签
 const closeOtherTags = () => {
   if (!selectedTag.value) return;
   router.push(selectedTag.value);
@@ -442,13 +456,14 @@ const closeOtherTags = () => {
   });
 };
 
+// 关闭所有标签页
 const closeAllTags = (tag: TagView | null) => {
   tagsViewStore.delAllViews().then((result: any) => {
     tagsViewStore.toLastView(result.visitedViews, tag || undefined);
   });
 };
 
-// 右键菜单生命周期
+// 右键菜单生命周期：显示时监听外部点击关闭，卸载时移除监听
 const useContextMenuManager = () => {
   const handleOutsideClick = () => {
     closeContextMenu();
@@ -525,6 +540,8 @@ useContextMenuManager();
 
 // ============================================
 // 标签项
+// 未激活: 透明底，融入白色容器背景
+// 激活:   浅主色底 + 边框，从背景中"跳"出来
 // ============================================
 
 .tags-item {
@@ -582,6 +599,7 @@ useContextMenuManager();
     }
   }
 
+  // 悬浮态 — 浅灰底浮现
   &:hover {
     color: var(--el-text-color-primary);
     background-color: var(--el-fill-color-light);
@@ -595,6 +613,7 @@ useContextMenuManager();
     }
   }
 
+  // 激活态 — 浅主色块突出显示
   &.is-active {
     font-weight: 500;
     color: var(--el-color-primary);
@@ -616,6 +635,7 @@ useContextMenuManager();
     }
   }
 
+  // 固定标签 — 不可关闭，视觉上与未激活一致
   &.is-affix {
     .tags-item__text {
       font-weight: 500;
