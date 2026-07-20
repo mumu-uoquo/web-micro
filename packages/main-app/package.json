@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && pnpm build:git && pnpm build:zip",
+    "build:git": "node build/build-git.js",
+    "build:zip": "node build/build-zip.js",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint:eslint": "eslint --cache \"src/**/*.{vue,ts,js}\" --fix"
@@ -37,7 +39,9 @@
     "@types/node": "^25.5.0",
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^6.0.5",
+    "archiver": "^7.0.1",
     "autoprefixer": "^10.4.27",
+    "dayjs": "^1.11.20",
     "fast-check": "^3.23.2",
     "postcss": "^8.5.8",
     "sass": "^1.98.0",
