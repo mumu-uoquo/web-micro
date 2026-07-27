@@ -20,6 +20,7 @@
     "@wangeditor-next/editor": "^5.7.15",
     "@wangeditor-next/editor-for-vue": "^5.1.14",
     "@web-micro/shared": "workspace:*",
+    "animate.css": "^4.1.1",
     "axios": "^1.13.6",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.21",
@@ -30,9 +31,11 @@
     "qrcode": "^1.5.4",
     "vue": "^3.5.30",
     "vue-i18n": "^11.3.0",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vxe-table": "~4.6.25"
   },
   "devDependencies": {
+    "@rollup/plugin-yaml": "4.0.0",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^25.5.0",
     "@vitejs/plugin-vue": "^6.0.5",

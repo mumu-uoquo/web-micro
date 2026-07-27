@@ -140,7 +140,7 @@
                   </el-icon>
                 </template>
                 <template v-else>
-                  <div class="i-svg:{{ scope.row[col.prop] }}" />
+                  <div :class="`i-svg:${scope.row[col.prop]}`" />
                 </template>
               </template>
             </template>
@@ -575,7 +575,9 @@ function handleExports() {
       props.contentConfig.exportsAction(lastFormData).then((data) => {
         worksheet.addRows(data);
         workbook.xlsx.writeBuffer().then(
-          (buffer) => { saveXlsx(buffer, filename as string); },
+          (buffer) => {
+            saveXlsx(buffer, filename as string);
+          },
           (error) => console.log(error)
         );
       });
@@ -587,7 +589,9 @@ function handleExports() {
       exportsFormData.origin === ExportsOriginEnum.SELECTED ? selectionData.value : pageData.value
     );
     workbook.xlsx.writeBuffer().then(
-      (buffer) => { saveXlsx(buffer, filename as string); },
+      (buffer) => {
+        saveXlsx(buffer, filename as string);
+      },
       (error) => console.log(error)
     );
   }
@@ -642,7 +646,9 @@ const handleImportSubmit = useThrottleFn(() => {
 function handleCloseImportModal() {
   importModalVisible.value = false;
   importFormRef.value?.resetFields();
-  nextTick(() => { importFormRef.value?.clearValidate(); });
+  nextTick(() => {
+    importFormRef.value?.clearValidate();
+  });
 }
 function handleImport() {
   const importAction = props.contentConfig.importAction;
@@ -675,7 +681,9 @@ function handleImports() {
           const worksheet = workbook.getWorksheet(1);
           if (worksheet) {
             const fields: any[] = [];
-            worksheet.getRow(1).eachCell((cell) => { fields.push(cell.value); });
+            worksheet.getRow(1).eachCell((cell) => {
+              fields.push(cell.value);
+            });
             for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
               const rowData: IObject = {};
               const row = worksheet.getRow(rowNumber);
@@ -704,15 +712,33 @@ function handleImports() {
 }
 function handleToolbar(name: string) {
   switch (name) {
-    case "refresh": handleRefresh(); break;
-    case "exports": handleOpenExportsModal(); break;
-    case "imports": handleOpenImportModal(); break;
-    case "search": emit("searchClick"); break;
-    case "add": emit("addClick"); break;
-    case "delete": handleDelete(); break;
-    case "import": handleOpenImportModal(true); break;
-    case "export": emit("exportClick"); break;
-    default: emit("toolbarClick", name); break;
+    case "refresh":
+      handleRefresh();
+      break;
+    case "exports":
+      handleOpenExportsModal();
+      break;
+    case "imports":
+      handleOpenImportModal();
+      break;
+    case "search":
+      emit("searchClick");
+      break;
+    case "add":
+      emit("addClick");
+      break;
+    case "delete":
+      handleDelete();
+      break;
+    case "import":
+      handleOpenImportModal(true);
+      break;
+    case "export":
+      emit("exportClick");
+      break;
+    default:
+      emit("toolbarClick", name);
+      break;
   }
 }
 function handleOperate(data: IOperateData) {
@@ -724,7 +750,9 @@ function handleOperate(data: IOperateData) {
         emit("operateClick", data);
       }
       break;
-    default: emit("operateClick", data); break;
+    default:
+      emit("operateClick", data);
+      break;
   }
 }
 function handleModify(field: string, value: boolean | string | number, row: Record<string, any>) {

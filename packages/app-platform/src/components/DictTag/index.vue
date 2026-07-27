@@ -33,15 +33,25 @@ const label = ref<string>("");
 const tagType = ref<"success" | "warning" | "info" | "primary" | "danger" | "" | undefined>(); // 标签类型
 const tagSize = ref<"default" | "large" | "small">(props.size); // 标签大小
 
+/**
+ * 根据字典项的值获取对应的 label 和 tagType
+ * @param dictCode 字典编码
+ * @param value 字典项的值
+ * @returns 包含 label 和 tagType 的对象
+ */
 const getLabelAndTagByValue = async (dictCode: string) => {
+  // 按需加载字典数据
   await dictStore.loadDictionary(dictCode);
+  // 从缓存中获取字典数据
   const dictItem = dictStore.getDictionary(dictCode);
   return {
     label: dictItem?.dicValue || dictCode,
     tagType: dictItem?.tagStyle || "",
   };
 };
-
+/**
+ * 更新 label 和 tagType
+ */
 const updateLabelAndTag = async () => {
   if (!props.code) {
     label.value = "";

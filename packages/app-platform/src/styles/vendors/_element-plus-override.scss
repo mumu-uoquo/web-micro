@@ -82,6 +82,7 @@ $border: 1px solid var(--border-color);
 
   border-radius: var(--custom-radius);
 
+  /* 表头 */
   .el-table__header th {
     padding: 12px 0;
     font-weight: 500;
@@ -89,15 +90,18 @@ $border: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
   }
 
+  /* 单元格 */
   .el-table__body td {
     padding: 10px 0;
   }
 
+  /* 无数据时不显示底部边框 */
   .el-table__empty-block {
     border-bottom: none;
   }
 }
 
+/* 斑马纹 — 更柔和 */
 .el-table--striped .el-table__body tr.el-table__row--striped td {
   background-color: rgb(0 0 0 / 1.5%);
 }
@@ -106,12 +110,14 @@ html.dark .el-table--striped .el-table__body tr.el-table__row--striped td {
   background-color: rgb(255 255 255 / 2%);
 }
 
+/* 下拉菜单项 */
 .el-dropdown-menu__item,
 .el-select-dropdown__item {
   margin: 2px 6px;
   border-radius: 6px;
 }
 
+/* 按钮 */
 .el-button {
   --el-button-border-radius: var(--el-border-radius-base);
   letter-spacing: 0.01em;
@@ -140,16 +146,19 @@ html.dark .el-table--striped .el-table__body tr.el-table__row--striped td {
   }
 }
 
+/* 标签 */
 .el-tag {
   border-radius: 4px;
 }
 
+/* 抽屉和对话框底部按钮区域 */
 .dialog-footer {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
 
+/* 弹出菜单统一使用主题变量 */
 .el-menu--popup {
   --el-menu-bg-color: var(--menu-background);
   --el-menu-text-color: var(--menu-text);

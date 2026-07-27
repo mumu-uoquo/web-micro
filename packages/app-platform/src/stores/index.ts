@@ -16,10 +16,11 @@ import type { App } from "vue";
 import { ref, computed } from "vue";
 import { createPinia, defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
-import { AuthStorage, decrypt } from "@web-micro/shared";
+import { AuthStorage, decrypt, STORAGE_KEYS } from "@web-micro/shared";
+import en from "element-plus/es/locale/lang/en";
+import zhCn from "element-plus/es/locale/lang/zh-cn";
 import AuthAPI, { type UserAuthDto, type TokenDto } from "@/api/auth";
 import SystemAPI from "@/api/system";
-import { STORAGE_KEYS } from "@web-micro/shared";
 
 // ─── Pinia 实例 ────────────────────────────────────────────────────────────
 
@@ -30,6 +31,23 @@ export function setupStore(app: App<Element>) {
 }
 
 export { pinia };
+
+// ─── useAppStore ───────────────────────────────────────────────────────────
+
+export const useAppStore = defineStore("app", () => {
+  const language = useStorage(STORAGE_KEYS.LANGUAGE, "zh-CN");
+  const locale = computed(() => (language.value === "en" ? en : zhCn));
+
+  function changeLanguage(val: string) {
+    language.value = val;
+  }
+
+  return { language, locale, changeLanguage };
+});
+
+export function useAppStoreHook() {
+  return useAppStore(pinia);
+}
 
 // ─── LoginMode 类型（与 main-app settings.store 保持一致） ─────────────────
 
@@ -276,16 +294,36 @@ export const useDictStore = defineStore("dict", () => {
   };
 });
 
-// ─── useReturnCodeStore（兼容旧代码 import，Sub_App 无需完整实现） ──────────
+// ─── useReturnCodeStore ───────────────────────────────────────────────────
 
 export const useReturnCodeStore = defineStore("returnCode", () => {
-  /**
-   * 根据返回码查找描述文字（Sub_App 中不维护返回码字典，始终返回空字符串）
-   */
-  function getDesc(code: string): string {
-    return code || "";
+  const returnCodeData = useStorage<Record<string, string>>(STORAGE_KEYS.RETURN_CODE_CACHE, {});
+
+  /** 加载并缓存系统响应码。 */
+  async function loadReturnCode(): Promise<void> {
+    if (Object.keys(returnCodeData.value).length > 0) return;
+
+    const data = await SystemAPI.listAllReturnCodes();
+    data.forEach((item) => {
+      returnCodeData.value[item.returnCode] = item.returnValue || "";
+    });
   }
-  return { getDesc };
+
+  /** 获取响应码对应的描述。 */
+  function getReturnCode(code: string): string | undefined {
+    return returnCodeData.value[code];
+  }
+
+  /** 清空响应码缓存。 */
+  function clearReturnCode() {
+    returnCodeData.value = {};
+  }
+
+  return {
+    loadReturnCode,
+    getReturnCode,
+    clearReturnCode,
+  };
 });
 
 // ─── Hook 函数（供组件外部使用） ──────────────────────────────────────────

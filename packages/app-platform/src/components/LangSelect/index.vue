@@ -1,3 +1,53 @@
 <template>
-  <span />
+  <el-dropdown trigger="click" @command="handleLanguageChange">
+    <div class="i-svg:language" :class="size" />
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item
+          v-for="item in langOptions"
+          :key="item.value"
+          :disabled="appStore.language === item.value"
+          :command="item.value"
+        >
+          {{ item.label }}
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
 </template>
+
+<script setup lang="ts">
+import { useAppStore } from "@/stores";
+import { localesConfigs } from "@/plugins/i18n";
+
+defineProps({
+  size: {
+    type: String,
+    required: false,
+  },
+});
+
+interface LangOptions {
+  label: string;
+  value: string;
+}
+
+const langOptions = ref<LangOptions[]>([]);
+const appStore = useAppStore();
+const { locale, t } = useI18n();
+
+function handleLanguageChange(lang: string) {
+  locale.value = lang;
+  appStore.changeLanguage(lang);
+  ElMessage.success(t("langSelect.message.success"));
+}
+
+onMounted(() => {
+  langOptions.value = Object.entries(localesConfigs)
+    .filter(([_key, value]: any) => value.langOptions)
+    .map(([_key, value]: any) => ({
+      label: value.langOptions.label,
+      value: value.langOptions.value,
+    }));
+});
+</script>

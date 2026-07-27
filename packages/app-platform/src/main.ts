@@ -9,10 +9,20 @@
 
 import { createApp, type App as VueApp } from 'vue'
 import AppComponent from './App.vue'
+
+// ===== 样式导入 =====
+import "element-plus/dist/index.css";
+import "element-plus/theme-chalk/dark/css-vars.css";
+import "vxe-table/lib/style.css";
+import "@/styles/index.scss";
+import "uno.css";
+import "animate.css";
+
+// ===== 核心配置 =====
 import { createAppRouter } from './router/index'
-import { createPinia } from 'pinia'
+import { pinia } from './stores'
+import { setupI18n } from './plugins/i18n'
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import { setupPermissionDirective, updatePermissions } from './directives/permission'
 import { AuthStorage } from '@web-micro/shared'
 import { consumeTabTicket } from './utils/ticket'
@@ -91,12 +101,12 @@ export async function mount(props: QiankunProps): Promise<void> {
     return Promise.reject(new Error(msg))
   }
 
-  const pinia = createPinia()
   const router = createAppRouter(props)
 
   app = createApp(AppComponent)
   app.use(router)
   app.use(pinia)
+  setupI18n(app)
   app.use(ElementPlus)
   setupPermissionDirective(app, props)
 
@@ -180,11 +190,11 @@ if (!window.__POWERED_BY_QIANKUN__) {
       url.searchParams.delete('_ticket')
       window.history.replaceState({}, '', url.toString())
 
-      const pinia = createPinia()
       const router = createAppRouter({} as QiankunProps)
       const devApp = createApp(AppComponent)
       devApp.use(router)
       devApp.use(pinia)
+      setupI18n(devApp)
       devApp.use(ElementPlus)
       setupPermissionDirective(devApp, { permissions: [] })
       devApp.mount('#app')
@@ -198,11 +208,11 @@ if (!window.__POWERED_BY_QIANKUN__) {
     // Requirements: 6.3, 6.4
     const existingToken = AuthStorage.getAccessToken()
 
-    const pinia = createPinia()
     const router = createAppRouter({} as QiankunProps)
     const devApp = createApp(AppComponent)
     devApp.use(router)
     devApp.use(pinia)
+    setupI18n(devApp)
     devApp.use(ElementPlus)
     setupPermissionDirective(devApp, { permissions: [] })
     devApp.mount('#app')

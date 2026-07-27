@@ -171,24 +171,9 @@ import type { LoginMode } from "@/stores";
 import { AuthStorage } from "@web-micro/shared";
 import { appConfig } from "@/settings";
 import { Iphone } from "@element-plus/icons-vue";
-
-// Dev_Mode 下无主应用 ThemeSwitch/LangSelect，提供轻量占位
-const ThemeSwitch = defineAsyncComponent(() =>
-  import("@/components/ThemeSwitch/index.vue").catch(() => ({ template: "<span />" }))
-);
-const LangSelect = defineAsyncComponent(() =>
-  import("@/components/LangSelect/index.vue").catch(() => ({ template: "<span />" }))
-);
-
-// logo：尝试本地资源，找不到时留空
-// app-platform 使用与 main-app 相同的 logo 路径约定
-const logo = (() => {
-  try {
-    return new URL("../assets/images/logo.png", import.meta.url).href;
-  } catch {
-    return "";
-  }
-})();
+import logo from "@/assets/images/logo.png";
+import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
+import LangSelect from "@/components/LangSelect/index.vue";
 
 import Hero from "./components/Hero.vue";
 import Register from "./components/Register.vue";
