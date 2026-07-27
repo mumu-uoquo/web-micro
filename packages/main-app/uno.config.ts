@@ -24,6 +24,7 @@ const generateSafeList = (dir: string = iconsDir, prefix: string = ""): string[]
   try {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       if (entry.isDirectory()) {
+        // 递归处理子目录，前缀追加目录名（用 `-` 拼接）
         const subPrefix = prefix ? `${prefix}-${entry.name}` : entry.name;
         return generateSafeList(path.join(dir, entry.name), subPrefix);
       }
@@ -47,7 +48,9 @@ const generateSafeList = (dir: string = iconsDir, prefix: string = ""): string[]
  */
 const createSvgIconLoader = (dir: string) => {
   return async (name: string) => {
+    // 将连字符前缀还原为子目录路径，例如 `site-wechat` -> `site/wechat`
     const parts = name.split("-");
+    // 逐级尝试：优先匹配最长的子目录前缀
     for (let i = parts.length - 1; i >= 1; i--) {
       const subDir = parts.slice(0, i).join("/");
       const iconName = parts.slice(i).join("-");
@@ -64,6 +67,7 @@ const createSvgIconLoader = (dir: string) => {
         // 继续尝试下一级
       }
     }
+    // 无子目录，直接在根目录查找
     const filePath = path.join(dir, `${name}.svg`);
     try {
       const stat = await fs.promises.lstat(filePath);
@@ -81,6 +85,7 @@ const createSvgIconLoader = (dir: string) => {
 };
 
 export default defineConfig({
+  // 自定义快捷类
   shortcuts: {
     "wh-full": "w-full h-full",
     "flex-center": "flex justify-center items-center",
@@ -106,12 +111,15 @@ export default defineConfig({
     presetUno(),
     presetAttributify(),
     presetIcons({
+      // 额外属性
       extraProperties: {
         display: "inline-block",
         width: "1em",
         height: "1em",
       },
+      // 图标集合
       collections: {
+        // svg 是图标集合名称，使用 `i-svg:图标名` 或 `i-svg:子目录-图标名` 调用
         svg: createSvgIconLoader(iconsDir),
       },
     }),

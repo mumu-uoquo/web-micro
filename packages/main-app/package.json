@@ -19,6 +19,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@vueuse/core": "^14.2.1",
     "@web-micro/shared": "workspace:*",
+    "animate.css": "^4.1.1",
     "axios": "^1.13.6",
     "crypto-js": "^4.2.0",
     "element-plus": "^2.13.6",

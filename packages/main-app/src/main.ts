@@ -25,6 +25,7 @@ import "element-plus/dist/index.css";
 import "element-plus/theme-chalk/dark/css-vars.css";
 import "@/styles/index.scss";
 import "uno.css";
+import "animate.css";
 
 // ===== 核心配置 =====
 import { setupDirective } from "@/directives";

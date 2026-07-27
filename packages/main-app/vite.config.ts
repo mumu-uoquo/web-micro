@@ -48,6 +48,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       // 是否自动在浏览器中打开
       open: true,
       // 允许访问开发服务器的主机名（反向代理/隧道域名需在此放行）
+      // 以 "." 开头表示放行该域名及其所有子域名
       allowedHosts: [".kanebay.com", ".uoquo.loc", ".uoquo.com"],
       proxy: {
         // 代理前缀为 /dev-api 的请求
@@ -60,9 +61,11 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           proxyTimeout: 0,
           configure: (proxy) => {
             proxy.on("proxyReq", (proxyReq) => {
+              // 关闭 HTTP keep-alive 在 SSE 场景下对代理的干扰
               proxyReq.setHeader("Connection", "keep-alive");
             });
             proxy.on("proxyRes", (proxyRes) => {
+              // 确保 SSE 响应头透传，不被代理缓冲
               if (proxyRes.headers["content-type"]?.includes("text/event-stream")) {
                 proxyRes.headers["cache-control"] = "no-cache";
                 proxyRes.headers["x-accel-buffering"] = "no";
@@ -79,27 +82,39 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       // MOCK 服务
       ...(env.VITE_MOCK_DEV_SERVER === "true" ? [mockDevServerPlugin()] : []),
       UnoCSS(),
-      // API 自动导入配置
+      // API 自动导入配置 https://github.com/sxzz/element-plus-best-practices/blob/main/vite.config.ts
       AutoImport({
+        // 导入 Vue 函数，如：ref, reactive, toRef 等
         imports: ["vue", "@vueuse/core", "pinia", "vue-router", "vue-i18n"],
         resolvers: [
+          // 导入 Element Plus函数，如：ElMessage, ElMessageBox 等
           ElementPlusResolver({ importStyle: "sass" }),
         ],
         eslintrc: {
+          // 是否自动生成 eslint 规则，建议生成之后设置 false
           enabled: false,
+          // 指定自动导入函数 eslint 规则的文件
           filepath: "./.eslintrc-auto-import.json",
           globalsPropValue: true,
         },
+        // 是否在 vue 模板中自动导入
         vueTemplate: true,
+        // 导入函数类型声明文件路径 (false:关闭自动生成)
         dts: false,
+        // dts: "src/types/auto-imports.d.ts",
       }),
       // 组件自动导入
       Components({
         resolvers: [
+          // 导入 Element Plus 组件
           ElementPlusResolver({ importStyle: "sass" }),
         ],
+        // 指定自定义组件位置(默认:src/components)
+        // 仅自动加载全局通用组件，局部组件（"src/**/components"）不自动加载
         dirs: ["src/components"],
+        // 导入组件类型声明文件路径 (false:关闭自动生成)
         dts: false,
+        // dts: "src/types/components.d.ts",
       }),
     ] as PluginOption[],
     // 预加载项目必需的依赖
@@ -129,6 +144,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         "element-plus/es",
         "element-plus/es/locale/lang/en",
         "element-plus/es/locale/lang/zh-cn",
+        // Element Plus 组件样式预构建（避免按需发现时触发页面重载）
         ...[
           "alert",
           "avatar",
@@ -209,9 +225,12 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
     // 构建配置（标准 SPA 输出，不使用 lib/UMD 模式）
     build: {
       outDir: "dist",
+      // 开发模式生成 sourcemap 支持断点调试
       sourcemap: mode === "development",
+      // chunk 大小警告阈值
       chunkSizeWarningLimit: 1200,
       reportCompressedSize: false,
+      // Vite 8 默认使用 Lightning CSS 压缩
       cssMinify: "lightningcss",
       rolldownOptions: {
         onwarn(warning, warn) {
@@ -220,8 +239,11 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           warn(warning);
         },
         output: {
+          // 用于从入口点创建的块的打包输出格式
           entryFileNames: "js/[name].[hash].js",
+          // 用于命名代码拆分时创建的共享块的输出命名
           chunkFileNames: "js/[name].[hash].js",
+          // 用于输出静态资源的命名
           assetFileNames: (assetInfo: any) => {
             if (!assetInfo.name) {
               return "assets/[name].[hash][extname]";
