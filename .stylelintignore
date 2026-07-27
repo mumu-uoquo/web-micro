@@ -1,0 +1,14 @@
+dist
+node_modules
+public
+.husky
+.vscode
+.idea
+*.sh
+*.md
+build*.zip
+
+src/assets
+src/libs
+src/api
+stats.html

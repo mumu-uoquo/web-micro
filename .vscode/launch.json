@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug: Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${workspaceFolder}/*",
+        "/src/*": "${workspaceFolder}/src/*"
+      },
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
+    },
+    {
+      "name": "Debug: Firefox",
+      "type": "firefox",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "firefoxExecutable": "D:\\Program Files\\Mozilla Firefox\\firefox.exe",
+      "pathMappings": [
+        {
+          "url": "/@fs/D:/workspace-vscode/uoquo/web-monolith",
+          "path": "${workspaceFolder}"
+        },
+        {
+          "url": "http://localhost:3000",
+          "path": "${workspaceFolder}"
+        }
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**"
+      ]
+    },
+    {
+      "name": "Debug: Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${workspaceFolder}/*",
+        "/src/*": "${workspaceFolder}/src/*"
+      },
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
+    }
+  ]
+}
