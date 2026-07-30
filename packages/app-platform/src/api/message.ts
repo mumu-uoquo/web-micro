@@ -715,13 +715,21 @@ export interface MsgTemplateStatusParam {
  * 分页信息
  */
 export interface PageResultMsgInfoDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgInfoDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -729,13 +737,21 @@ export interface PageResultMsgInfoDto {
  * 分页信息
  */
 export interface PageResultMsgInfoViewDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgInfoViewDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -743,13 +759,21 @@ export interface PageResultMsgInfoViewDto {
  * 分页信息
  */
 export interface PageResultMsgPushLogDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgPushLogDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -757,13 +781,21 @@ export interface PageResultMsgPushLogDto {
  * 分页信息
  */
 export interface PageResultMsgReceiverDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgReceiverDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -771,13 +803,21 @@ export interface PageResultMsgReceiverDto {
  * 分页信息
  */
 export interface PageResultMsgReceiverSearchDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgReceiverSearchDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -785,13 +825,21 @@ export interface PageResultMsgReceiverSearchDto {
  * 分页信息
  */
 export interface PageResultMsgTemplateDto {
+  /** 是否有下一页 */
   nextPage?: boolean;
+  /** 当前页码（从1开始） */
   pageNum?: number;
+  /** 每页数据量 */
   pageSize?: number;
+  /** 总页数 */
   pages?: number;
+  /** 是否有上一页 */
   prevPage?: boolean;
+  /** 数据集 */
   result?: MsgTemplateDto[];
+  /** 当前页数量 */
   size?: number;
+  /** 总数据量 */
   total?: number;
 }
 
@@ -799,15 +847,25 @@ export interface PageResultMsgTemplateDto {
  * 消息附件
  */
 export interface MsgAttachmentDto {
+  /** 创建时间 */
   createTime?: string;
+  /** 下载次数 */
   downloadCount?: number;
+  /** 文件MD5 */
   fileMd5?: string;
+  /** 文件名 */
   fileName: string;
+  /** 文件相对路径（含文件名） */
   filePath: string;
+  /** 文件大小（字节） */
   fileSize?: number;
+  /** 文件类型 */
   fileType?: string;
+  /** 附件ID */
   id: string;
+  /** 消息ID */
   messageId?: string;
+  /** 文件显示路径（含文件名） */
   showPath: string;
 }
 
@@ -815,13 +873,21 @@ export interface MsgAttachmentDto {
  * 消息附件
  */
 export interface MsgAttachmentParam {
+  /** 文件MD5 */
   fileMd5?: string;
+  /** 文件名 */
   fileName?: string;
+  /** 文件相对路径（含文件名） */
   filePath?: string;
+  /** 文件大小（字节） */
   fileSize?: number;
+  /** 文件类型 */
   fileType?: string;
+  /** 附件ID */
   id?: string;
+  /** 消息ID */
   messageId?: string;
+  /** 文件上传码 */
   uploadCode?: string;
 }
 
@@ -829,16 +895,27 @@ export interface MsgAttachmentParam {
  * 消息推送日志
  */
 export interface MsgPushLogDto {
+  /** 创建时间 */
   createTime?: string;
+  /** 备注 */
   description?: string;
+  /** 日志ID */
   id: string;
+  /** 消息ID */
   messageId?: string;
+  /** 推送结果 */
   pushResult?: string;
+  /** 推送状态（022） */
   pushStatus?: string;
+  /** 推送时间 */
   pushTime?: string;
+  /** 推送方式（021） */
   pushWay?: string;
+  /** 接收人ID */
   receiverId?: string;
+  /** 接收人姓名 */
   receiverName?: string;
+  /** 重试次数 */
   retryCount?: number;
 }
 
@@ -846,19 +923,33 @@ export interface MsgPushLogDto {
  * 消息接收
  */
 export interface MsgReceiverDto {
+  /** 创建时间 */
   createTime?: string;
+  /** 删除标识 */
   deleteState?: number;
+  /** 备注 */
   description?: string;
+  /** 主键ID */
   id: string;
+  /** 消息ID */
   messageId?: string;
+  /** 处理结果 */
   processedResult?: string;
+  /** 是否处理 */
   processedState?: boolean;
+  /** 处理时间 */
   processedTime?: string;
+  /** 是否已读 */
   readState?: boolean;
+  /** 阅读时间 */
   readTime?: string;
+  /** 接收人ID */
   receiverId?: string;
+  /** 接收人姓名 */
   receiverName?: string;
+  /** 更新时间 */
   updateTime?: string;
+  /** 更新人 */
   updateUser?: string;
 }
 
@@ -866,7 +957,9 @@ export interface MsgReceiverDto {
  * 发布目标记录
  */
 export interface MsgReceiverSearchDto {
+  /** 主键ID */
   id?: string;
+  /** 显示名称 */
   name?: string;
 }
 
@@ -874,6 +967,8 @@ export interface MsgReceiverSearchDto {
  * 模板变量对象
  */
 export interface MsgTemplateVariable {
+  /** 说明 */
   description?: string;
+  /** 名称 */
   name?: string;
 }

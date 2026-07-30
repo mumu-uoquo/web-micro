@@ -3,7 +3,7 @@ import { http } from "@/api/http";
 export const USER_BASE_URL = "/health/api/platform";
 
 /**
- * 节假日管理、系统字典、系统设置、系统响应码、接入授权
+ * 节假日管理、授权管理、系统字典、接入授权推送、系统设置、系统响应码、接入授权
  */
 const SystemAPI = {
   /**
@@ -12,6 +12,17 @@ const SystemAPI = {
    */
   addAppInfo(data: AppInfoParam, config?: AxiosRequestConfig) {
     return http.request<AppInfoDto>("post", `${USER_BASE_URL}/v1/system/appinfo/add`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 新增推送配置
+   * @param data 接入授权推送
+   */
+  addAppPush(data: AppPushParam, config?: AxiosRequestConfig) {
+    return http.request<AppPushDto>("post", `${USER_BASE_URL}/v1/system/apppush/add`, {
       data,
       ...config,
     });
@@ -95,6 +106,17 @@ const SystemAPI = {
   },
 
   /**
+   * 删除推送配置
+   * @param data 推送配置ID
+   */
+  deleteAppPush(data: IdParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/system/apppush/delete`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * 关联资源：删除关联资源
    * @param data 应用与资源的关联ID
    */
@@ -172,6 +194,26 @@ const SystemAPI = {
   },
 
   /**
+   * 推送配置详情
+   * @param data 推送配置ID
+   */
+  getAppPush(data: IdParam, config?: AxiosRequestConfig) {
+    return http.request<AppPushDto>("post", `${USER_BASE_URL}/v1/system/apppush/info`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 获取机器码
+   */
+  getMachineCode(config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/system/license/machine/code`, {
+      ...config,
+    });
+  },
+
+  /**
    * 查询系统响应码详情（按响应码）
    * @param data 系统响应码请求参数
    */
@@ -199,6 +241,17 @@ const SystemAPI = {
    */
   getSystemSetting(data: SettingCodeParam, config?: AxiosRequestConfig) {
     return http.request<SettingDto>("post", `${USER_BASE_URL}/v1/system/settings/info`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 导入license
+   * @param data License导入参数
+   */
+  importLicense(data: LicenseImportParam, config?: AxiosRequestConfig) {
+    return http.request<void>("post", `${USER_BASE_URL}/v1/system/license/import`, {
       data,
       ...config,
     });
@@ -250,6 +303,17 @@ const SystemAPI = {
    */
   listAppNotRelationResource(data: IdParam, config?: AxiosRequestConfig) {
     return http.request<ResourceInfoDto[]>("post", `${USER_BASE_URL}/v1/system/appinfo/resource/relate/undelegated`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 推送配置列表（按appId）
+   * @param data 接入信息ID
+   */
+  listAppPushByAppId(data: IdParam, config?: AxiosRequestConfig) {
+    return http.request<AppPushDto[]>("post", `${USER_BASE_URL}/v1/system/apppush/list`, {
       data,
       ...config,
     });
@@ -323,6 +387,17 @@ const SystemAPI = {
    */
   listHoliday(data: SysHolidaySearchParam, config?: AxiosRequestConfig) {
     return http.request<SysHolidayDto[]>("post", `${USER_BASE_URL}/v1/system/holiday/list/all`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * License导入记录（分页）
+   * @param data License导入记录分页查询
+   */
+  listLicenseRecord(data: LicenseRecordPageParam, config?: AxiosRequestConfig) {
+    return http.request<PageResultLicenseRecordDto>("post", `${USER_BASE_URL}/v1/system/license/record/list`, {
       data,
       ...config,
     });
@@ -450,6 +525,28 @@ const SystemAPI = {
   },
 
   /**
+   * 修改推送配置
+   * @param data 接入授权推送
+   */
+  updateAppPush(data: AppPushParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/system/apppush/update`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 修改推送配置状态
+   * @param data 修改推送配置状态
+   */
+  updateAppPushState(data: AppPushStateParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/system/apppush/update/status`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * 修改节假日信息
    * @param data 节假日信息
    */
@@ -504,6 +601,8 @@ export interface AppInfoDto {
   statusTime?: string;
   /** 模板类型（006） */
   templateType?: string;
+  /** 可信站点 */
+  trustSite?: string;
   /** 更新时间 */
   updateTime?: string;
 }
@@ -548,6 +647,8 @@ export interface AppInfoParam {
   secret?: string;
   /** 模板类型 */
   templateType?: string;
+  /** 可信站点 */
+  trustSite?: string;
 }
 
 /**
@@ -593,11 +694,119 @@ export interface AppPermissionCopyParam {
 }
 
 /**
+ * 接入授权推送
+ */
+export interface AppPushDto {
+  /** 接入信息ID */
+  appId?: string;
+  /** 压缩方式 */
+  compressType?: string;
+  /** 创建时间 */
+  createTime?: string;
+  /** 数据类型集合（009） */
+  dataBizType?: string;
+  /** 数据范围（031） */
+  dataScope?: string;
+  /** 数据来源（030） */
+  dataSource?: string;
+  /** 失败处理 */
+  failHandling?: string;
+  /** 主键 */
+  id: string;
+  /** 推送实现（标准、定制） */
+  pushImpl?: string;
+  /** 推送方式（032） */
+  pushMode?: string;
+  /** 推送速率（条/秒） */
+  pushRateLimit?: number;
+  /** 可用状态（001） */
+  status?: string;
+  /** 状态备注 */
+  statusMemo?: string;
+  /** 状态时间 */
+  statusTime?: string;
+  /** 目标地址 */
+  targetAddress?: string;
+  /** 三方授权 */
+  targetAppkey?: string;
+  /** 推送目标 */
+  targetHost?: string;
+  /** 三方秘钥 */
+  targetSecret?: string;
+  /** 更新时间 */
+  updateTime?: string;
+}
+
+/**
+ * 接入授权推送
+ */
+export interface AppPushParam {
+  /** 接入信息ID */
+  appId: string;
+  /** 压缩方式 */
+  compressType?: string;
+  /** 数据类型集合（009） */
+  dataBizType?: string;
+  /** 数据范围（031） */
+  dataScope?: string;
+  /** 数据来源（030） */
+  dataSource?: string;
+  /** 失败处理 */
+  failHandling?: string;
+  /** 主键 */
+  id?: string;
+  /** 推送实现（标准、定制） */
+  pushImpl?: string;
+  /** 推送方式（032） */
+  pushMode?: string;
+  /** 推送速率（条/秒） */
+  pushRateLimit?: number;
+  /** 目标地址 */
+  targetAddress?: string;
+  /** 三方授权 */
+  targetAppkey?: string;
+  /** 推送目标 */
+  targetHost?: string;
+  /** 三方秘钥 */
+  targetSecret?: string;
+}
+
+/**
+ * 修改推送配置状态
+ */
+export interface AppPushStateParam {
+  /** id */
+  id: string;
+  /** 状态 */
+  status: string;
+  /** 状态备注 */
+  statusMemo?: string;
+}
+
+/**
  * ID信息
  */
 export interface IdParam {
   /** 主键 */
   id: string;
+}
+
+/**
+ * License导入参数
+ */
+export interface LicenseImportParam {
+  /** license内容 */
+  license: string;
+}
+
+/**
+ * License导入记录分页查询
+ */
+export interface LicenseRecordPageParam {
+  /** 当前页码（从1开始） */
+  pageNum?: number;
+  /** 每页数量（默认10条） */
+  pageSize?: number;
 }
 
 /**
@@ -726,6 +935,28 @@ export interface PageResultAppInfoDto {
   prevPage?: boolean;
   /** 数据集 */
   result?: AppInfoDto[];
+  /** 当前页数量 */
+  size?: number;
+  /** 总数据量 */
+  total?: number;
+}
+
+/**
+ * 分页信息
+ */
+export interface PageResultLicenseRecordDto {
+  /** 是否有下一页 */
+  nextPage?: boolean;
+  /** 当前页码（从1开始） */
+  pageNum?: number;
+  /** 每页数据量 */
+  pageSize?: number;
+  /** 总页数 */
+  pages?: number;
+  /** 是否有上一页 */
+  prevPage?: boolean;
+  /** 数据集 */
+  result?: LicenseRecordDto[];
   /** 当前页数量 */
   size?: number;
   /** 总数据量 */
@@ -878,4 +1109,36 @@ export interface SysReturnCodeSearchParam {
   pageSize?: number;
   /** 响应码（模糊匹配） */
   returnCode?: string;
+}
+
+/**
+ * License导入记录
+ */
+export interface LicenseRecordDto {
+  /** 激活码 */
+  activationCode?: string;
+  /** 创建时间 */
+  createTime?: string;
+  /** 创建人 */
+  createUser?: string;
+  /** 备注 */
+  description?: string;
+  /** 失败原因 */
+  failReason?: string;
+  /** 记录ID */
+  id?: string;
+  /** 导入结果：true=成功 false=失败 */
+  importResult?: boolean;
+  /** 是否为当前生效授权 */
+  isCurrent?: boolean;
+  /** 授权快照（JSON） */
+  licenseInfo?: string;
+  /** 序列号 */
+  serialNo?: string;
+  /** 系统版本 */
+  systemVersion?: string;
+  /** 授权结束日期，NULL表示永久 */
+  validExpire?: string;
+  /** 授权开始日期 */
+  validFrom?: string;
 }

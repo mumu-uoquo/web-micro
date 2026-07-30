@@ -195,6 +195,8 @@ export interface LogUserLoginDto {
   loginAddress?: string;
   /** 登录IP */
   loginIp?: string;
+  /** 登录模式 */
+  loginMode?: string;
   /** 登录参数 */
   loginParam?: object;
   /** 登录状态（同响应码） */

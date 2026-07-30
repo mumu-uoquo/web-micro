@@ -4,11 +4,6 @@ export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 用户认证相关
- *
- * 迁移自 web-monolith/src/api/auth.ts
- * 调整：将 `import { http } from "@/utils/http"` 替换为 main-app 本地 `@/api/http`
- *
- * Requirements: 2.2, 3.4
  */
 const AuthAPI = {
   /**
@@ -265,7 +260,7 @@ export interface CredentialConfigDto {
   /** 授权回调地址 */
   redirectUri?: string;
   /** 渲染方式：wxjs=集成微信官方 JS（WxLogin / 企微 JS-SDK），oauth=自行拼接 OAuth2 URL 并展示二维码 */
-  renderType?: "wxjs" | "oauth";
+  renderType?: string;
   /** 场景（wechat/wecom） */
   scene?: string;
   /** 本次授权的 state（用于回调与状态轮询） */
