@@ -34,8 +34,8 @@ export default defineConfig(({ mode, command }) => {
       vue(),
       yaml(),
       UnoCSS(),
-      // Vite 开发入口是原生 ESM，qiankun 需要此桥接暴露生命周期。
-      ...(command === "serve" ? [qiankun("app-platform", { useDevMode: true })] : []),
+      // 开发和生产均需启用：开发态桥接 ESM 生命周期，生产构建转换 HTML Entry。
+      qiankun("app-platform", { useDevMode: command === "serve" }),
       // 自动导入 Vue、VueUse、Pinia、vue-router 等常用 API
       AutoImport({
         imports: [
@@ -81,29 +81,11 @@ export default defineConfig(({ mode, command }) => {
 
     build: {
       outDir: "dist",
-      // lib 模式：qiankun 要求 UMD 输出，name 必须与 registerMicroApps 的 name 一致
-      lib: {
-        entry: resolve(__dirname, "src/main.ts"),
-        name: "app-platform",
-        formats: ["umd"],
-        fileName: () => "app-platform.umd.js",
-      },
       rolldownOptions: {
         onwarn(warning, warn) {
           // @vueuse/core 的 #__PURE__ 注释位置不符合 Rolldown 规范，属已知兼容问题，忽略即可
           if (warning.code === "INVALID_ANNOTATION") return;
           warn(warning);
-        },
-        // 排除主应用已提供的依赖，避免重复打包
-        external: ["vue", "vue-router", "pinia", "element-plus"],
-        output: {
-          // UMD 格式全局变量映射（运行时从主应用全局作用域读取）
-          globals: {
-            vue: "Vue",
-            "vue-router": "VueRouter",
-            pinia: "Pinia",
-            "element-plus": "ElementPlus",
-          },
         },
       },
     },

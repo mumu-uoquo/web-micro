@@ -2,18 +2,17 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
-    <title>app-platform (Dev Mode)</title>
+    <title>app-platform</title>
   </head>
 
   <body>
-    <!-- 子应用 Dev_Mode 独立运行挂载点 -->
+    <!-- 子应用独立运行及 qiankun HTML Entry 挂载点 -->
     <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
-  <script type="module" src="/src/main.ts"></script>
 
   <style>
     html,

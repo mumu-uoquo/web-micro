@@ -166,7 +166,7 @@ export async function unmount(): Promise<void> {
   }
 }
 
-// Vite 开发态通过插件将 ESM 生命周期注册到 qiankun。
+// Vite 插件在开发和生产模式下将 ESM 生命周期注册到 qiankun。
 export async function update(props: QiankunProps): Promise<void> {
   syncGlobalState(props as GlobalState);
 }
@@ -178,22 +178,15 @@ renderWithQiankun({
   update: (props) => update(props as QiankunProps),
 });
 
-// ── Dev_Mode 双模入口 ─────────────────────────────────────────────────────────
+// ── 非 qiankun 入口 ──────────────────────────────────────────────────────────
 /**
- * 非 qiankun 环境（Dev_Mode 独立运行）时直接创建应用并挂载至 #app。
- *
- * 进入逻辑（优先级从高到低）：
- * 1. URL 含 _ticket 参数 → Tab_Ticket 新标签页流程
- *    - consumeTabTicket() 读取并立即删除 sessionStorage._tab_ticket
- *    - 有效 token → AuthStorage.setTokens() 后正常挂载（进入首页）
- *    - 无效 / 过期 → 重定向至 /login
- * 2. URL 不含 _ticket → 普通 Dev_Mode 流程
- *    - AuthStorage.getAccessToken() 非空 → 正常挂载（进入首页）
- *    - token 为空 → 挂载登录页
- *
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 11.4, 11.5, 11.6
+ * 生产构建只允许由主应用通过 qiankun 挂载；直接访问子应用时返回主应用。
+ * 开发构建继续支持独立运行、Tab_Ticket 和子应用登录页。
  */
-if (!qiankunWindow.__POWERED_BY_QIANKUN__) {
+if (!qiankunWindow.__POWERED_BY_QIANKUN__ && import.meta.env.PROD) {
+  const mainAppUrl = import.meta.env.VITE_APP_MAIN_URL || "/";
+  window.location.replace(mainAppUrl);
+} else if (!qiankunWindow.__POWERED_BY_QIANKUN__) {
   const url = new URL(window.location.href);
   const hasTicket = url.searchParams.has("_ticket");
 
