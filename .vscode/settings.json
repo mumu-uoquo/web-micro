@@ -73,7 +73,7 @@
   "i18n-ally.namespace": true,
   "i18n-ally.ignoredNamespaces": ["index.*"],
 
-  "i18n-ally.localesPaths": ["src/lang"],
+  "i18n-ally.localesPaths": ["packages/main-app/src/lang", "packages/app-platform/src/lang"],
   "i18n-ally.pathMatcher": "{locale}/{namespaces}.{ext}",
   
   "i18n-ally.extensions": ["json", "yaml"],
