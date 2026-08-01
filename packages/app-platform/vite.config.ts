@@ -7,8 +7,9 @@ import { resolve } from "path";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import qiankun from "vite-plugin-qiankun";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd());
 
   const useMock = env.VITE_APP_USE_MOCK === "true";
@@ -33,6 +34,8 @@ export default defineConfig(({ mode }) => {
       vue(),
       yaml(),
       UnoCSS(),
+      // Vite 开发入口是原生 ESM，qiankun 需要此桥接暴露生命周期。
+      ...(command === "serve" ? [qiankun("app-platform", { useDevMode: true })] : []),
       // 自动导入 Vue、VueUse、Pinia、vue-router 等常用 API
       AutoImport({
         imports: [

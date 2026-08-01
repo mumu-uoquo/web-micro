@@ -1,4 +1,4 @@
-import type { Router, RouteLocationNormalized, RouteRecordRaw } from "vue-router";
+import type { RouteLocationNormalized } from "vue-router";
 import NProgress from "@/plugins/nprogress";
 import router from "@/router";
 import { redirectToLogin } from "@web-micro/shared";
@@ -49,10 +49,8 @@ export function setupPermissionGuard() {
           throw new Error("无用户角色信息，请重新登录");
         }
         // 获取登录用户角色的授权信息
-        const dynamicRoutes = await permissionStore.generateRoutes(userInfo.currentRoleId);
-        dynamicRoutes.forEach((route: RouteRecordRaw) => {
-          router.addRoute(route);
-        });
+        // generateRoutes 内部已经完成 router.addRoute，避免重复注册同名路由。
+        await permissionStore.generateRoutes(userInfo.currentRoleId);
         return { ...to, replace: true };
       }
 

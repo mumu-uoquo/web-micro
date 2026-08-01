@@ -7,8 +7,8 @@
  * Requirements: 4.4, 4.5, 4.6, 4.7, 4.8, 5.2, 5.4, 6.1
  */
 
-import { createApp, type App as VueApp } from 'vue'
-import AppComponent from './App.vue'
+import { createApp, type App as VueApp } from "vue";
+import AppComponent from "./App.vue";
 
 // ===== 样式导入 =====
 import "element-plus/dist/index.css";
@@ -19,49 +19,50 @@ import "uno.css";
 import "animate.css";
 
 // ===== 核心配置 =====
-import { createAppRouter } from './router/index'
-import { pinia } from './stores'
-import { setupI18n } from './plugins/i18n'
-import ElementPlus from 'element-plus'
-import { setupPermissionDirective, updatePermissions } from './directives/permission'
-import { AuthStorage } from '@web-micro/shared'
-import { consumeTabTicket } from './utils/ticket'
+import { createAppRouter, disposeAppRouter } from "./router/index";
+import { pinia } from "./stores";
+import { setupI18n } from "./plugins/i18n";
+import ElementPlus from "element-plus";
+import { setupPermissionDirective, updatePermissions } from "./directives/permission";
+import { AuthStorage } from "@web-micro/shared";
+import { consumeTabTicket } from "./utils/ticket";
+import { qiankunWindow, renderWithQiankun } from "vite-plugin-qiankun/dist/helper";
 
 // ── qiankun 全局标志声明 ────────────────────────────────────────────────────
 declare global {
   interface Window {
-    __POWERED_BY_QIANKUN__?: boolean
+    __POWERED_BY_QIANKUN__?: boolean;
   }
 }
 
 // ── QiankunProps 接口 ────────────────────────────────────────────────────────
 export interface GlobalState {
-  token: string
-  userInfo: Record<string, any>
-  permissions: string[]
-  [key: string]: any
+  token: string;
+  userInfo: Record<string, any>;
+  permissions: string[];
+  [key: string]: any;
 }
 
 export interface QiankunProps {
   /** 子应用挂载的容器元素（由 qiankun 注入） */
-  container: HTMLElement
+  container: HTMLElement;
   /** 当前 Global_State 快照（挂载时的初始值） */
-  token: string
-  userInfo: Record<string, any>
-  permissions: string[]
+  token: string;
+  userInfo: Record<string, any>;
+  permissions: string[];
   /** 订阅 Global_State 变更 */
   onGlobalStateChange: (
     callback: (state: GlobalState, prev: GlobalState) => void,
     fireImmediately?: boolean
-  ) => void
+  ) => void;
   /** 向 Main_App 推送部分状态更新 */
-  setGlobalState: (state: Partial<GlobalState>) => void
+  setGlobalState: (state: Partial<GlobalState>) => void;
 }
 
 // ── 模块级状态 ────────────────────────────────────────────────────────────────
-let app: VueApp | null = null
-let unsubscribeGlobalState: (() => void) | null = null
-let mountedContainer: HTMLElement | null = null
+let app: VueApp | null = null;
+let unsubscribeGlobalState: (() => void) | null = null;
+let mountedContainer: HTMLElement | null = null;
 
 /**
  * 同步 Global_State 至子应用内部响应式状态
@@ -69,7 +70,7 @@ let mountedContainer: HTMLElement | null = null
  */
 function syncGlobalState(state: GlobalState): void {
   if (Array.isArray(state.permissions)) {
-    updatePermissions(state.permissions)
+    updatePermissions(state.permissions);
   }
 }
 
@@ -81,12 +82,12 @@ function syncGlobalState(state: GlobalState): void {
  * Requirements: 4.5
  */
 export async function bootstrap(): Promise<void> {
-  console.log('[app-platform] bootstrap')
+  console.log("[app-platform] bootstrap");
 }
 
 // ── 生命周期：mount ───────────────────────────────────────────────────────────
 /**
- * 创建 Vue 3 应用实例并挂载至 props.container 中的 #sub-app-container。
+ * 创建 Vue 3 应用实例并挂载至 props.container 中的 #app。
  *
  * Prod_Mode（window.__POWERED_BY_QIANKUN__ === true）且 props.token 为空时
  * reject 并打印错误日志，拒绝挂载。
@@ -94,41 +95,48 @@ export async function bootstrap(): Promise<void> {
  * Requirements: 4.6, 4.8, 5.2
  */
 export async function mount(props: QiankunProps): Promise<void> {
-  // Prod_Mode：token 为空时拒绝挂载
-  if (window.__POWERED_BY_QIANKUN__ && !props.token) {
-    const msg = '[app-platform] 缺少 token，拒绝挂载'
-    console.error(msg)
-    return Promise.reject(new Error(msg))
+  // 主应用 props 为首选；共享认证存储作为防御性回退，避免生命周期时序导致误拒绝。
+  const accessToken = props.token || AuthStorage.getAccessToken();
+  if (qiankunWindow.__POWERED_BY_QIANKUN__ && !accessToken) {
+    const msg = "[app-platform] 缺少 token，拒绝挂载";
+    console.error(msg);
+    return Promise.reject(new Error(msg));
   }
+  props.token = accessToken;
 
-  const router = createAppRouter(props)
+  const router = createAppRouter(props);
 
-  app = createApp(AppComponent)
-  app.use(router)
-  app.use(pinia)
-  setupI18n(app)
-  app.use(ElementPlus)
-  setupPermissionDirective(app, props)
+  app = createApp(AppComponent);
+  app.use(router);
+  app.use(pinia);
+  setupI18n(app);
+  app.use(ElementPlus);
+  setupPermissionDirective(app, props);
+
+  // Memory History 已由路由工厂写入宿主对应地址，等待首次导航完成后再渲染。
+  await router.isReady();
 
   // 订阅 Global_State 变更，fireImmediately=true 确保挂载时立即同步初始值
   // qiankun v2 的 props.onGlobalStateChange 返回取消订阅函数
-  if (typeof props.onGlobalStateChange === 'function') {
+  if (typeof props.onGlobalStateChange === "function") {
     const unsubscribe = props.onGlobalStateChange((state: GlobalState) => {
-      syncGlobalState(state)
-    }, true)
+      syncGlobalState(state);
+    }, true);
 
     // 保存取消订阅函数供 unmount 调用
-    unsubscribeGlobalState = typeof unsubscribe === 'function' ? unsubscribe : null
+    unsubscribeGlobalState = typeof unsubscribe === "function" ? unsubscribe : null;
   }
 
-  // 挂载至主应用提供的容器内的 #sub-app-container
-  const container = props.container.querySelector<HTMLElement>('#sub-app-container')
+  // qiankun 将子应用入口 HTML 注入 props.container，真实 Vue 挂载点是其中的 #app。
+  const container =
+    props.container.querySelector<HTMLElement>("#app") ??
+    (props.container.matches("#app") ? props.container : null);
   if (!container) {
-    console.error('[app-platform] 未找到 #sub-app-container，挂载失败')
-    return Promise.reject(new Error('[app-platform] 未找到 #sub-app-container'))
+    console.error("[app-platform] 未找到 #app，挂载失败");
+    return Promise.reject(new Error("[app-platform] 未找到 #app"));
   }
-  mountedContainer = container
-  app.mount(container)
+  mountedContainer = container;
+  app.mount(container);
 }
 
 // ── 生命周期：unmount ─────────────────────────────────────────────────────────
@@ -138,23 +146,37 @@ export async function mount(props: QiankunProps): Promise<void> {
  * Requirements: 4.7, 5.4
  */
 export async function unmount(): Promise<void> {
+  disposeAppRouter();
+
   // 注销 Global_State 监听
   if (unsubscribeGlobalState) {
-    unsubscribeGlobalState()
-    unsubscribeGlobalState = null
+    unsubscribeGlobalState();
+    unsubscribeGlobalState = null;
   }
 
   if (app) {
-    app.unmount()
-    app = null
+    app.unmount();
+    app = null;
   }
 
   // 清空容器 innerHTML，防止残留 DOM 节点
   if (mountedContainer) {
-    mountedContainer.innerHTML = ''
-    mountedContainer = null
+    mountedContainer.innerHTML = "";
+    mountedContainer = null;
   }
 }
+
+// Vite 开发态通过插件将 ESM 生命周期注册到 qiankun。
+export async function update(props: QiankunProps): Promise<void> {
+  syncGlobalState(props as GlobalState);
+}
+
+renderWithQiankun({
+  bootstrap,
+  mount: (props) => mount(props as QiankunProps),
+  unmount,
+  update: (props) => update(props as QiankunProps),
+});
 
 // ── Dev_Mode 双模入口 ─────────────────────────────────────────────────────────
 /**
@@ -171,57 +193,57 @@ export async function unmount(): Promise<void> {
  *
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 11.4, 11.5, 11.6
  */
-if (!window.__POWERED_BY_QIANKUN__) {
-  const url = new URL(window.location.href)
-  const hasTicket = url.searchParams.has('_ticket')
+if (!qiankunWindow.__POWERED_BY_QIANKUN__) {
+  const url = new URL(window.location.href);
+  const hasTicket = url.searchParams.has("_ticket");
 
   if (hasTicket) {
     // ── Tab_Ticket 新标签页流程 ──────────────────────────────────────────
     // Requirements: 11.4, 11.5, 11.6
-    const token = consumeTabTicket()
+    const token = consumeTabTicket();
     if (token) {
       // Token 有效：保存至 AuthStorage，正常挂载子应用（进入首页）
       AuthStorage.setTokens({
         accessToken: token,
-        refreshToken: '',
+        refreshToken: "",
         expireTime: 0,
-      })
+      });
       // 清除 URL 中的 _ticket 参数，防止刷新时重复消费
-      url.searchParams.delete('_ticket')
-      window.history.replaceState({}, '', url.toString())
+      url.searchParams.delete("_ticket");
+      window.history.replaceState({}, "", url.toString());
 
-      const router = createAppRouter({} as QiankunProps)
-      const devApp = createApp(AppComponent)
-      devApp.use(router)
-      devApp.use(pinia)
-      setupI18n(devApp)
-      devApp.use(ElementPlus)
-      setupPermissionDirective(devApp, { permissions: [] })
-      devApp.mount('#app')
+      const router = createAppRouter({} as QiankunProps);
+      const devApp = createApp(AppComponent);
+      devApp.use(router);
+      devApp.use(pinia);
+      setupI18n(devApp);
+      devApp.use(ElementPlus);
+      setupPermissionDirective(devApp, { permissions: [] });
+      devApp.mount("#app");
     } else {
       // Token 无效或过期：重定向至登录页（Requirements: 11.5）
-      console.warn('[app-platform] Tab_Ticket 无效或已过期，重定向至登录页')
-      window.location.href = '/login'
+      console.warn("[app-platform] Tab_Ticket 无效或已过期，重定向至登录页");
+      window.location.href = "/login";
     }
   } else {
     // ── 普通 Dev_Mode 流程 ───────────────────────────────────────────────
     // Requirements: 6.3, 6.4
-    const existingToken = AuthStorage.getAccessToken()
+    const existingToken = AuthStorage.getAccessToken();
 
-    const router = createAppRouter({} as QiankunProps)
-    const devApp = createApp(AppComponent)
-    devApp.use(router)
-    devApp.use(pinia)
-    setupI18n(devApp)
-    devApp.use(ElementPlus)
-    setupPermissionDirective(devApp, { permissions: [] })
-    devApp.mount('#app')
+    const router = createAppRouter({} as QiankunProps);
+    const devApp = createApp(AppComponent);
+    devApp.use(router);
+    devApp.use(pinia);
+    setupI18n(devApp);
+    devApp.use(ElementPlus);
+    setupPermissionDirective(devApp, { permissions: [] });
+    devApp.mount("#app");
 
     if (!existingToken) {
       // Token 为空：挂载后跳转至登录页
       router.isReady().then(() => {
-        router.push('/login')
-      })
+        router.push("/login");
+      });
     }
     // Token 非空时 router 默认 '/' → '/dashboard/index'，直接进入业务首页
   }

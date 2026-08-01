@@ -5,6 +5,7 @@ import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import AuthAPI, { type ModuleTreeDto } from "@/api/auth";
 import { isExternal } from "@/utils";
 import { getGlobalActions } from "@/micro/global-state";
+import { buildHostRoutePath, resolveMicroAppName } from "@/micro/config";
 
 /**
  * 菜单节点扩展类型（包含 target / fullscreen / params 字段）
@@ -19,6 +20,7 @@ export interface MenuNode {
   popup: boolean;
   url: string;
   path: string;
+  microApp?: string;
   params: { key: string; val: string; enabled: boolean }[] | null;
   children: MenuNode[];
   target: "_self" | "_blank";
@@ -54,9 +56,9 @@ export const usePermissionStore = defineStore("permission", () => {
       let menuData: RouteRecordRaw[] = [];
       if (data?.length > 0 && data[0].children) {
         // 筛选菜单
-        menuData = parseMenuTree(undefined, data[0].children);
+        menuData = parseMenuTree(undefined, data[0].children, data[0].microApp);
         // 缓存扁平化菜单节点（用于 findMenuByPath）
-        menuNodes.value = flattenMenuNodes(data[0].children);
+        menuNodes.value = flattenMenuNodes(data[0].children, data[0].microApp);
         // 缓存按钮数据
         permsInfo.value = [];
         cachePerms(data[0].children);
@@ -148,7 +150,10 @@ export const usePermissionStore = defineStore("permission", () => {
    * @param path 路由路径
    */
   function findMenuByPath(path: string): MenuNode | undefined {
-    return menuNodes.value.find((node) => node.path === path);
+    const hostPath = buildHostRoutePath(path);
+    return menuNodes.value.find(
+      (node) => buildHostRoutePath(node.path, node.microApp) === hostPath
+    );
   }
 
   /**
@@ -185,7 +190,11 @@ export const usePermissionStore = defineStore("permission", () => {
 /**
  * 筛选菜单
  */
-function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): RouteRecordRaw[] {
+function parseMenuTree(
+  parentId: string | undefined,
+  modules: ModuleTreeDto[],
+  inheritedMicroApp?: string
+): RouteRecordRaw[] {
   if (!modules || modules.length == 0) {
     return [];
   }
@@ -200,13 +209,14 @@ function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): 
       return item.path && item.path.length > 0;
     })
     .map((item: ModuleTreeDto) => {
+      const microApp = resolveMicroAppName(item.microApp || inheritedMicroApp);
+      const microPath = item.path as string;
       // 补全 target 和 fullscreen 默认值
-      const nodeTarget: "_self" | "_blank" =
-        (item as any).target === "_blank" ? "_blank" : "_self";
+      const nodeTarget: "_self" | "_blank" = (item as any).target === "_blank" ? "_blank" : "_self";
       const nodeFullscreen: boolean = (item as any).fullscreen === true;
 
-      // 路径去掉第一个斜杠（为后面查找对应的view做准备）
-      const urls = item.path && item.path.length > 1 ? item.path.slice(1) : item.path;
+      // 使用不含宿主 activeRule 的业务路径查找子应用 view。
+      const urls = microPath.length > 1 ? microPath.slice(1) : microPath;
       // 提取参数
       const { params, querys } = (item.params || []).reduce(
         (acc, p) => {
@@ -237,7 +247,7 @@ function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): 
       const info = {
         id: item.id,
         name: item.moduleCode,
-        path: item.path,
+        path: buildHostRoutePath(microPath, microApp),
         redirect: "",
         component: target == "window" ? "" : parentId ? urls : "Layout",
         children: undefined,
@@ -252,6 +262,9 @@ function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): 
           keepAlive: true,
           title: item.menuName,
           rank: item.sortIdx,
+          // 微应用名与原始业务路径供宿主布局和路由桥接识别。
+          microApp,
+          microPath,
           // 扩展字段：菜单节点的 target / fullscreen（用于 handleMenuClick）
           menuTarget: nodeTarget,
           menuFullscreen: nodeFullscreen,
@@ -259,9 +272,9 @@ function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): 
           menuUrl: item.url || item.path || "",
           menuParams: item.params || [],
         } as RouteMeta,
-      } as RouteRecordRaw;
+      } as unknown as RouteRecordRaw;
       // 菜单：子菜单信息
-      const children: RouteRecordRaw[] = parseMenuTree(item.id, item.children || []);
+      const children: RouteRecordRaw[] = parseMenuTree(item.id, item.children || [], microApp);
       if (children.length > 0) {
         info.children = children;
         info.redirect = children[0].path;
@@ -273,10 +286,11 @@ function parseMenuTree(parentId: string | undefined, modules: ModuleTreeDto[]): 
 /**
  * 将菜单树扁平化为 MenuNode 数组（仅 005001 节点）
  */
-function flattenMenuNodes(modules: ModuleTreeDto[]): MenuNode[] {
+function flattenMenuNodes(modules: ModuleTreeDto[], inheritedMicroApp?: string): MenuNode[] {
   const result: MenuNode[] = [];
-  function walk(list: ModuleTreeDto[]) {
+  function walk(list: ModuleTreeDto[], parentMicroApp?: string) {
     for (const item of list) {
+      const microApp = resolveMicroAppName(item.microApp || parentMicroApp);
       if (item.moduleType === DictionaryEnum.MODULE_TYPE_MENU && item.path) {
         result.push({
           id: item.id,
@@ -288,6 +302,7 @@ function flattenMenuNodes(modules: ModuleTreeDto[]): MenuNode[] {
           popup: item.popup ?? false,
           url: item.url || item.path || "",
           path: item.path,
+          microApp,
           params: (item.params as { key: string; val: string; enabled: boolean }[] | null) ?? null,
           children: [],
           target: (item as any).target === "_blank" ? "_blank" : "_self",
@@ -295,11 +310,11 @@ function flattenMenuNodes(modules: ModuleTreeDto[]): MenuNode[] {
         });
       }
       if (item.children && item.children.length > 0) {
-        walk(item.children);
+        walk(item.children, microApp);
       }
     }
   }
-  walk(modules);
+  walk(modules, resolveMicroAppName(inheritedMicroApp));
   return result;
 }
 

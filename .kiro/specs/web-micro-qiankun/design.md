@@ -266,8 +266,8 @@ export function setupMicroApps() {
     [
       {
         name: 'app-platform',
-        // Dev: http://localhost:7101  Prod: 由 VITE_SUB_APP_ENTRY 环境变量控制
-        entry: import.meta.env.VITE_SUB_APP_ENTRY ?? 'http://localhost:7101',
+        // Dev: http://localhost:7101  Prod: 由 VITE_SUB_APP_PLATFORM 环境变量控制
+        entry: import.meta.env.VITE_SUB_APP_PLATFORM ?? 'http://localhost:7101',
         container: '#sub-app-container',
         activeRule: '/platform',  // 所有 /platform/* 路由激活子应用
         props: {},  // 初始 props 为空，beforeMount 钩子注入最新状态
@@ -1224,7 +1224,7 @@ qiankun 的 `activeRule` 支持函数形式，用于同时匹配多个前缀：
 registerMicroApps([
   {
     name: 'app-platform',
-    entry: import.meta.env.VITE_SUB_APP_ENTRY ?? 'http://localhost:7101',
+    entry: import.meta.env.VITE_SUB_APP_PLATFORM ?? 'http://localhost:7101',
     container: '#sub-app-container',
     // 同时覆盖业务路由和 visitor 路由
     activeRule: (location) =>

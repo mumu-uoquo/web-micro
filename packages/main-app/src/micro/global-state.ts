@@ -10,6 +10,7 @@
  */
 
 import { initGlobalState, type MicroAppStateActions } from "qiankun";
+import { AuthStorage } from "@web-micro/shared";
 
 // ─── Global_State 数据结构 ─────────────────────────────────────────────────────
 
@@ -42,7 +43,8 @@ interface GlobalState {
 let _actions: MicroAppStateActions | null = null;
 
 let _currentState: GlobalState = {
-  token: "",
+  // 页面刷新时从共享认证存储恢复 token，避免首次直达微应用时注入空值。
+  token: AuthStorage.getAccessToken() ?? "",
   userInfo: {},
   permissions: [],
   fullscreen: null,

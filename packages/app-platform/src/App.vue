@@ -12,10 +12,11 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import StandaloneLayout from "@/layouts/StandaloneLayout.vue";
 import { useAppStore } from "@/stores";
+import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 
 const route = useRoute();
 const appStore = useAppStore();
 const showStandaloneLayout = computed(
-  () => !window.__POWERED_BY_QIANKUN__ && route.path !== "/login"
+  () => !qiankunWindow.__POWERED_BY_QIANKUN__ && route.path !== "/login"
 );
 </script>

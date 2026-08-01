@@ -48,7 +48,7 @@ web-micro/
   - 动态放行：路径包含 `/visitor/` 片段的请求直接放行，无需登录（覆盖子应用前缀，如 `/platform/visitor/**`）
   - 其余路由需要有效 token，否则重定向至 `/login`
 - **Pinia Stores**：`app`、`dict`、`permission`、`return-code`、`settings`、`tags-view`、`tenant`、`user` 共 8 个 store，统一由主应用管理。
-- **qiankun 子应用注册**：通过 `registerMicroApps` 注册 `app-platform`，`activeRule` 为 `/platform`；在 `beforeMount` 钩子中将最新 token/userInfo/permissions 注入子应用 props。
+- **qiankun 子应用注册**：所有子应用的名称、分环境入口、容器、activeRule 和函数式 props 集中维护在 `src/micro/config.ts`；`register.ts` 仅负责动态注册。
 - **Global_State 初始化**：调用 `initGlobalState({ token, userInfo, permissions, fullscreen, notifications })`，作为主子应用唯一通信通道。
 - **SSE 消息通知**：全局单例 `useSse`，仅主窗口（`window.opener === null` 且 URL 不含 `_ticket` 参数）在登录后建立 SSE 连接，新标签页不重复连接。
 - **全屏模式**：通过 `app.store.ts` 的 `layout.fullscreen` 控制是否隐藏 Header/Sidebar，支持菜单点击触发和子应用通过 Global_State 请求切换。
@@ -295,12 +295,21 @@ pnpm run dev:sub
 
 访问 `http://localhost:7101`，子应用提供独立登录页，登录后可直接访问业务功能，无需启动主应用。
 
-### 环境变量配置
+### 微应用与环境配置
 
-主应用（`packages/main-app/.env.development`）：
+主应用不再使用按子应用拆分的 `VITE_SUB_APP_*` 环境变量。所有子应用入口与路由规则统一维护在 `packages/main-app/src/micro/config.ts`：
 
-```env
-VITE_SUB_APP_ENTRY=http://localhost:7101   # 子应用入口地址
+```typescript
+{
+  name: "app-platform",
+  entry: {
+    development: "http://localhost:7101",
+    production: "/platform/",
+  },
+  container: "#sub-app-container",
+  activeRule: "/platform",
+  props: getMicroAppProps,
+}
 ```
 
 子应用（`packages/app-platform/.env.development`）：

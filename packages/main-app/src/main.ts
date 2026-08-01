@@ -29,7 +29,7 @@ import "animate.css";
 
 // ===== 核心配置 =====
 import { setupDirective } from "@/directives";
-import { setupRouter } from "@/router";
+import router, { setupRouter } from "@/router";
 import { setupStore } from "@/stores";
 import { setupI18n } from "@/plugins/i18n";
 
@@ -58,11 +58,14 @@ Object.entries(ElementPlusIcons).forEach(([name, comp]) => app.component(name, c
 // 3️⃣ 路由守卫
 setupPermissionGuard();
 
-// 4️⃣ qiankun 子应用注册（在 store 初始化之后）
-setupMicroApps();
-
-// 5️⃣ Global_State 初始化
+// 4️⃣ 先初始化 Global_State，确保 qiankun 首次挂载能读取已持久化的 token
 initAppGlobalState();
 
-// 6️⃣ 挂载应用
+// 5️⃣ 先挂载宿主；等待首轮路由完成后，布局中的子应用容器已进入 DOM
 app.mount("#app");
+
+// 6️⃣ 注册并启动 qiankun；首次直达 /#/platform/** 时也能找到容器
+void router
+  .isReady()
+  .then(() => setupMicroApps())
+  .catch((error) => console.error("[Main_App] qiankun 启动失败:", error));

@@ -82,7 +82,7 @@
     - 将 `web-monolith/uno.config.ts` 复制至 `packages/main-app/uno.config.ts`
     - 将 `web-monolith/index.html` 复制至 `packages/main-app/index.html`
     - 将 `web-monolith/public/` 整体复制至 `packages/main-app/public/`
-    - 将 `web-monolith/.env.development` 和 `.env.production` 复制至 `packages/main-app/`，添加 `VITE_SUB_APP_ENTRY=http://localhost:7101` 变量
+    - 将 `web-monolith/.env.development` 和 `.env.production` 复制至 `packages/main-app/`，添加 `VITE_SUB_APP_PLATFORM=http://localhost:7101` 变量
     - _Requirements: 1.6, 1.8, 1.10, 7.1_
 
   - [x] 4.2 迁移 main-app 全局样式、类型、枚举、常量
@@ -123,7 +123,7 @@
     - _Requirements: 3.1, 3.5, 3.6_
 
   - [x] 4.9 新增 qiankun 注册与 Global_State 模块
-    - 创建 `packages/main-app/src/micro/register.ts`：实现 `setupMicroApps()`，调用 `registerMicroApps` 注册 `app-platform`（`entry` 读取 `VITE_SUB_APP_ENTRY`，`container: '#sub-app-container'`，`activeRule: '/platform'`）；配置 `beforeMount` 钩子注入最新 token/userInfo/permissions 到 props；调用 `start({ sandbox: { experimentalStyleIsolation: true } })`
+    - 创建 `packages/main-app/src/micro/register.ts`：实现 `setupMicroApps()`，调用 `registerMicroApps` 注册 `app-platform`（`entry` 读取 `VITE_SUB_APP_PLATFORM`，`container: '#sub-app-container'`，`activeRule: '/platform'`）；配置 `beforeMount` 钩子注入最新 token/userInfo/permissions 到 props；调用 `start({ sandbox: { experimentalStyleIsolation: true } })`
     - 创建 `packages/main-app/src/micro/global-state.ts`：实现 `initAppGlobalState()`，调用 `initGlobalState({ token: '', userInfo: {}, permissions: [], fullscreen: null, notifications: { unreadCount: 0 } })`；导出 `getGlobalActions()` 提供 `getState()`/`setState(patch)` 方法；在 `onGlobalStateChange` 中监听 `fullscreen` 信号，非 null 时同步更新 `appStore.layout.fullscreen`，并将 `fullscreen` 重置为 null
     - _Requirements: 3.7, 3.8, 5.1, 10.6, 10.7_
 

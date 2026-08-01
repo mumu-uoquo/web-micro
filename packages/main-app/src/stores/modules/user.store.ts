@@ -46,9 +46,7 @@ export const useUserStore = defineStore("user", () => {
       useSse().connect();
       useNoticeSync().initialize();
     } else {
-      console.warn(
-        "SSE 连接已跳过，当前窗口非主窗口：" + location.href
-      );
+      console.warn("SSE 连接已跳过，当前窗口非主窗口：" + location.href);
     }
   }
 
@@ -72,6 +70,11 @@ export const useUserStore = defineStore("user", () => {
       data.currentRoleId = data.roleList[0].id;
     }
     Object.assign(userInfo.value, { ...data });
+    // 页面刷新恢复用户信息后，同步给即将挂载的子应用。
+    getGlobalActions().setState({
+      token: AuthStorage.getAccessToken() || "",
+      userInfo: { ...userInfo.value },
+    });
     return userInfo.value;
   }
 
@@ -166,8 +169,9 @@ export const useUserStore = defineStore("user", () => {
     console.log("[UserStore] refreshToken", param, userInfo.value);
     const data = await AuthAPI.tokenLogin(param, { _skipQueue: true, _retry: true });
     if (data) {
-      // 更新令牌，保持当前记住我状态
+      // 更新令牌，保持当前记住我状态，并同步给后续微应用生命周期。
       AuthStorage.setTokens(data);
+      getGlobalActions().setState({ token: data.accessToken || "" });
       return data;
     }
     throw new Error("刷新令牌失败");

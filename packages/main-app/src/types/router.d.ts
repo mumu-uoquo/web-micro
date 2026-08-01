@@ -31,6 +31,10 @@ declare module "vue-router" {
     params?: Record<string, string>;
     /** 路由 query 参数 */
     querys?: Record<string, string>;
+    /** 规范化后的微应用名称 */
+    microApp?: string;
+    /** 后端返回的子应用原始业务路径 */
+    microPath?: string;
     /** 菜单节点 target（'_self' | '_blank'） */
     menuTarget?: "_self" | "_blank";
     /** 菜单节点是否全屏 */

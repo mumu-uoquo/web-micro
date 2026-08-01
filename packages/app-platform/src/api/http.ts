@@ -1,5 +1,6 @@
 import { ElMessage } from "element-plus";
 import { AuthStorage, createHttpInstance } from "@web-micro/shared";
+import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 
 /**
  * app-platform 不直接刷新 Token。
@@ -11,7 +12,7 @@ function redirectToLogin(): never {
   const baseUrl = import.meta.env.BASE_URL.endsWith("/")
     ? import.meta.env.BASE_URL
     : `${import.meta.env.BASE_URL}/`;
-  const loginUrl = window.__POWERED_BY_QIANKUN__ ? "/login" : `${baseUrl}#/login`;
+  const loginUrl = qiankunWindow.__POWERED_BY_QIANKUN__ ? "/login" : `${baseUrl}#/login`;
 
   window.location.replace(loginUrl);
   throw new Error("会话已失效，请重新登录");

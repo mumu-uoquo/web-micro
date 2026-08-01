@@ -1,9 +1,10 @@
 <template>
   <section class="app-main" :style="{ height: appMainHeight }">
-    <!-- 子应用挂载点（qiankun mount point） -->
-    <div id="sub-app-container"></div>
+    <!-- 子应用挂载点始终保留在 DOM 中，供 qiankun 查找 -->
+    <div v-show="microAppRouteActive" id="sub-app-container"></div>
 
-    <router-view>
+    <!-- 微应用路由由 qiankun 渲染，避免宿主 Page404 与子应用争用内容区 -->
+    <router-view v-if="!microAppRouteActive">
       <template #default="{ Component, route }">
         <transition :name="transitionName" mode="out-in">
           <keep-alive :include="cachedViews">
@@ -21,11 +22,14 @@
 </template>
 
 <script setup lang="ts">
-import { type RouteLocationNormalized } from "vue-router";
+import { useRoute, type RouteLocationNormalized } from "vue-router";
 import { useSettingsStore, useTagsViewStore } from "@/stores";
+import { isMicroAppRoute } from "@/micro/config";
 import variables from "@/styles/variables.module.scss";
 import Error404 from "@/views/error/404.vue";
 
+const route = useRoute();
+const microAppRouteActive = computed(() => isMicroAppRoute(route.path, route.meta.microApp));
 const { cachedViews } = toRefs(useTagsViewStore());
 
 const settingsStore = useSettingsStore();
@@ -81,8 +85,19 @@ const transitionName = computed(() => {
 <style lang="scss" scoped>
 .app-main {
   position: relative;
+  padding: 20px;
   overflow-y: auto;
   background-color: var(--page-bg);
+
+  #sub-app-container {
+    width: 100%;
+    height: 100%;
+  }
+  #sub-app-container :deep([data-name]),
+  #sub-app-container :deep(#app) {
+    width: 100%;
+    height: 100%;
+  }
 
   /* fade */
   .fade-enter-active,
