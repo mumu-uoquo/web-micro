@@ -80,6 +80,10 @@ export function createAppRouter(_props?: unknown): Router {
     window.addEventListener(hostRoutingEvent, syncFromHost);
     const removeAfterEach = router.afterEach((to, _from, failure) => {
       if (failure) return;
+      // 宿主已离开当前子应用的 activeRule 时，不再反向改写 hash。
+      // 否则卸载前尚未完成的子应用导航可能把 /profile 等主应用路由抢写回 /platform/**。
+      if (getChildRouteFromHostHash() === null) return;
+
       const targetHash = getHostHashFromChildRoute(to.fullPath);
       if (window.location.hash !== targetHash) {
         window.location.hash = targetHash;

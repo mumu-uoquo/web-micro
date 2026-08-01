@@ -171,7 +171,7 @@ async function refreshUserInfo() {
  * 打开个人中心页面
  */
 function handleProfileClick() {
-  router.push({ name: "Profile" });
+  void router.push("/profile");
 }
 
 /**
