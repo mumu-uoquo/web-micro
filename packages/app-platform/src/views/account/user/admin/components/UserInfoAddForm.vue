@@ -187,8 +187,7 @@ import DepartmentAPI, { DepartmentTreeDto } from "@/api/department";
 import UserAPI, { GroupDto } from "@/api/user";
 import RoleAPI, { RoleInfoDto } from "@/api/role";
 import AdminUserAPI, { UserAddParam } from "@/api/adminUser";
-import { passwordComplex } from "@/utils/common";
-import { encrypt } from "@web-micro/shared";
+import { passwordComplex, encrypt } from "@/utils";
 
 const settingsStore = useSettingsStore();
 

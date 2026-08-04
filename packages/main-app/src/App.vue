@@ -16,7 +16,7 @@
 import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
 import { ThemeMode, ComponentSize, WatermarkMode } from "@/enums";
 import { defaults as defaultSettings } from "@/settings";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
@@ -45,6 +45,7 @@ const noWatermarkRoutes = ["/", "/login", "/403", "/404"];
  */
 const timestamp = ref(Date.now());
 const watermarkContent = computed(() => {
+  // console.log("刷新水印：watermarkContent", Date.now(), settingsStore.showWatermark, defaultSettings.watermarkMode, userStore.userInfo.userName);
   // 不开启水印
   if (
     !settingsStore.showWatermark ||
@@ -73,6 +74,7 @@ const watermarkContent = computed(() => {
  * 通过改变响应式数据触发重新计算
  */
 const refreshWatermark = () => {
+  // console.log("刷新水印：refreshWatermark", Date.now(), username.value, userStore.userInfo.userName);
   timestamp.value = Date.now();
 };
 

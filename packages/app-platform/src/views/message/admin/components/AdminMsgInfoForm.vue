@@ -244,7 +244,7 @@ import { ElMessage } from "element-plus";
 import type { FormRules } from "element-plus";
 import { useDebounceFn } from "@vueuse/core";
 import WangEditor from "@/components/WangEditor/index.vue";
-import { formatDate, parseDate } from "@/utils/format";
+import { formatDate, parseDate } from "@/utils";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useDictStore } from "@/stores";
 import DatePicker from "@/components/DatePicker/index.vue";

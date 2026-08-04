@@ -7,11 +7,11 @@ import {
   toggleDarkMode,
   toggleSidebarColor,
   watchSystemTheme,
-} from "@/utils/theme";
-import { STORAGE_KEYS } from "@web-micro/shared";
+} from "@/utils";
+import { STORAGE_KEYS } from "@/utils";
 import { defaults } from "@/settings";
 import SystemAPI from "@/api/system";
-import { decrypt } from "@web-micro/shared";
+import { decrypt } from "@/utils";
 
 // ─────────────────────────────────────────────
 // 公共系统配置（内存中，每次 load() 重新获取）

@@ -168,8 +168,7 @@ import { useSettingsStore } from "@/stores";
 import DepartmentAPI, { DepartmentTreeDto } from "@/api/department";
 import RoleAPI, { RoleInfoDto } from "@/api/role";
 import UserAPI, { GroupDto, UserInfoDto, UserUpdateParam } from "@/api/user";
-import { passwordComplex } from "@/utils/common";
-import { encrypt } from "@web-micro/shared";
+import { passwordComplex, encrypt } from "@/utils";
 
 const settingsStore = useSettingsStore();
 

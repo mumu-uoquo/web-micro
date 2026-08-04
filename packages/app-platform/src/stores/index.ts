@@ -16,7 +16,7 @@ import type { App } from "vue";
 import { ref, computed } from "vue";
 import { createPinia, defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
-import { AuthStorage, decrypt, STORAGE_KEYS } from "@web-micro/shared";
+import { AuthStorage, configureCodeResolvers, decrypt, STORAGE_KEYS } from "@/utils";
 import en from "element-plus/es/locale/lang/en";
 import zhCn from "element-plus/es/locale/lang/zh-cn";
 import AuthAPI, { type UserAuthDto, type TokenDto } from "@/api/auth";
@@ -324,6 +324,11 @@ export const useReturnCodeStore = defineStore("returnCode", () => {
     getReturnCode,
     clearReturnCode,
   };
+});
+
+configureCodeResolvers({
+  getReturnCode: (code) => useReturnCodeStore(pinia).getReturnCode(code),
+  getDictionary: (code) => useDictStore(pinia).getDictionary(code),
 });
 
 // ─── Hook 函数（供组件外部使用） ──────────────────────────────────────────

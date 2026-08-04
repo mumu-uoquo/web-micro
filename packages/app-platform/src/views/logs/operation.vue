@@ -131,8 +131,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { Search, CircleClose, Document, Refresh } from "@element-plus/icons-vue";
-import { parseReturnCode } from "@/utils/common";
-import { formatDate } from "@/utils/format";
+import { parseReturnCode, formatDate } from "@/utils";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useDictStore, useUserStore, useReturnCodeStore } from "@/stores";
 import LogsAPI, { type BizEventRecordSearchParam, type BizEventRecordDto } from "@/api/logs";

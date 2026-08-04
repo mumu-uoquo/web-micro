@@ -58,8 +58,7 @@
 <script setup lang="ts">
 import path from "path-browserify";
 import { RouteRecordRaw } from "vue-router";
-import { isExternal } from "@/utils";
-import { translateRouteTitle } from "@/utils/i18n";
+import { isExternal, translateRouteTitle } from "@/utils";
 import { ElIcon } from "element-plus";
 
 defineOptions({

@@ -167,8 +167,8 @@
 <script setup lang="ts">
 import router from "@/router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
-import type { LoginMode } from "@/stores/modules/settings.store";
-import { AuthStorage } from "@web-micro/shared";
+import type { LoginMode } from "@/stores";
+import { AuthStorage } from "@/utils";
 import { connectSse } from "@/composables/sse";
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
@@ -176,6 +176,7 @@ import { Iphone } from "@element-plus/icons-vue";
 
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
+
 import Hero from "./components/Hero.vue";
 import Register from "./components/Register.vue";
 import ResetPwd from "./components/ResetPwd.vue";

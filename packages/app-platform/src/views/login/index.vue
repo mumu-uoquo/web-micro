@@ -168,10 +168,12 @@
 import { useRouter } from "vue-router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
 import type { LoginMode } from "@/stores";
-import { AuthStorage } from "@web-micro/shared";
+import { AuthStorage } from "@/utils";
+
+import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
 import { Iphone } from "@element-plus/icons-vue";
-import logo from "@/assets/images/logo.png";
+
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 
@@ -202,8 +204,13 @@ const tenantEnabled = appConfig.tenantEnabled;
  * token 已由登录组件 AccountForm 等通过 setUserInfo → AuthStorage.setTokens 保存
  */
 async function handleLoginSuccess() {
-  // 异步加载字典数据
+  // 需要在路由跳转前加载字典数据，否则会出现字典数据未加载完成导致页面渲染异常
+  // 并行执行
+  // await Promise.all([userStore.getUserInfo(), dictStore.loadDictionary(null)]);
+  // 20260410: 字典列表改为异步加载
   dictStore.loadDictionary(null);
+  // 20260517：登录时已经将用户信息缓存本地，没必要再次获取
+  // await userStore.getUserInfo();
   // Dev_Mode 下无 SSE 连接，跳过 connectSse()
   // 跳转到登录前的页面
   const { path, queryParams } = parseRedirect();

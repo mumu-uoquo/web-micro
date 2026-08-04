@@ -1,6 +1,5 @@
 /**
  * 数据格式化相关工具函数
- * 迁移自 web-monolith/src/utils/format.ts（完整复制）
  */
 
 /**

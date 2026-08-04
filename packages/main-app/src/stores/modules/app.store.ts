@@ -2,7 +2,7 @@ import zhCn from "element-plus/es/locale/lang/zh-cn";
 import en from "element-plus/es/locale/lang/en";
 import { store } from "@/stores";
 import { DeviceEnum, SidebarStatus } from "@/enums";
-import { STORAGE_KEYS } from "@web-micro/shared";
+import { STORAGE_KEYS } from "@/utils";
 import { defaults } from "@/settings";
 
 export const useAppStore = defineStore("app", () => {

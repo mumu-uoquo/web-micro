@@ -1,6 +1,6 @@
 import { store } from "@/stores";
 import SystemAPI, { type SysDictionarySimpleDto } from "@/api/system";
-import { STORAGE_KEYS } from "@web-micro/shared";
+import { STORAGE_KEYS } from "@/utils";
 
 export const useDictStore = defineStore("dict", () => {
   // 字典数据缓存

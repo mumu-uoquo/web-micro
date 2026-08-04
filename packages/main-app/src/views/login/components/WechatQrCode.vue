@@ -36,8 +36,7 @@
 import { Loading, RefreshRight } from "@element-plus/icons-vue";
 import QRCode from "qrcode";
 import { useUserStore, useSettingsStore } from "@/stores";
-import { AuthStorage } from "@web-micro/shared";
-import { encrypt } from "@web-micro/shared";
+import { AuthStorage, encrypt } from "@/utils";
 import { appConfig } from "@/settings";
 import AuthAPI, { type CredentialConfigDto } from "@/api/auth";
 

@@ -1,5 +1,5 @@
 import { ElMessage } from "element-plus";
-import { AuthStorage, createHttpInstance } from "@web-micro/shared";
+import { AuthStorage, createHttpInstance } from "@/utils";
 import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 
 /**

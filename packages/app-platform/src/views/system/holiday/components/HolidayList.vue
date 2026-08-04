@@ -106,7 +106,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useDictStore } from "@/stores";
 import DictTag from "@/components/DictTag/index.vue";
-import { formatDate, parseDate } from "@/utils/format";
+import { formatDate, parseDate } from "@/utils";
 import { Plus, Edit, Delete, Select, Close, WarnTriangleFilled } from "@element-plus/icons-vue";
 import { SysHolidayDto } from "@/api/system";
 import DatePicker from "@/components/DatePicker/index.vue";

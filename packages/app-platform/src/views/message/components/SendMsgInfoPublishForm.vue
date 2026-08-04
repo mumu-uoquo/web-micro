@@ -163,7 +163,7 @@ import { ref, reactive, watchEffect } from "vue";
 import { ElMessage } from "element-plus";
 import type { FormRules } from "element-plus";
 import { useDebounceFn } from "@vueuse/core";
-import { formatDate, parseDate } from "@/utils/format";
+import { formatDate, parseDate } from "@/utils";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import DictTag from "@/components/DictTag/index.vue";
 import { useDictStore } from "@/stores";

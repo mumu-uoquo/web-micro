@@ -162,7 +162,7 @@
 <script setup lang="ts">
 import { User, Lock, Loading, Iphone, Avatar, ChatDotRound } from "@element-plus/icons-vue";
 import { useSettingsStore } from "@/stores";
-import { encrypt } from "@web-micro/shared";
+import { encrypt } from "@/utils";
 import { appConfig } from "@/settings";
 import AuthAPI, { type RegisterParam } from "@/api/auth";
 

@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { useUserStore, useSettingsStore } from "@/stores";
-import { encrypt } from "@web-micro/shared";
+import { encrypt } from "@/utils";
 import { appConfig } from "@/settings";
 import AuthAPI, { type MfaLoginParam } from "@/api/auth";
 

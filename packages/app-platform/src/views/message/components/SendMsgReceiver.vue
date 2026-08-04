@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from "vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { Delete, WarnTriangleFilled } from "@element-plus/icons-vue";
 import { MsgInfoListParam, PageResultMsgReceiverDto, MsgReceiverDto } from "@/api/message";
 

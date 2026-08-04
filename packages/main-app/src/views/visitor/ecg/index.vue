@@ -12,7 +12,7 @@
 import { useRouter } from "vue-router";
 
 defineOptions({
-  name: "Empty",
+  name: "VisitorEcg",
 });
 
 const router = useRouter();

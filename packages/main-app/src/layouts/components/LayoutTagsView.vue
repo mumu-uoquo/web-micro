@@ -143,7 +143,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter, type RouteRecordRaw } from "vue-router";
 import { resolve } from "path-browserify";
-import { translateRouteTitle } from "@/utils/i18n";
+import { translateRouteTitle } from "@/utils";
 import { useAppStore, usePermissionStore, useTagsViewStore } from "@/stores";
 
 interface ContextMenu {

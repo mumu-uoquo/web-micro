@@ -1,6 +1,6 @@
 /** 微应用注册与宿主路由配置。 */
 
-import { AuthStorage } from "@web-micro/shared";
+import { AuthStorage } from "@/utils";
 import { getGlobalActions } from "./global-state";
 
 export interface MicroAppEntry {

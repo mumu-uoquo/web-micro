@@ -2,6 +2,7 @@
 import type { App } from "vue";
 import { createI18n, type I18n } from "vue-i18n";
 import { useAppStoreHook } from "@/stores";
+import { configureRouteTitleTranslator } from "@/utils";
 
 // element-plus国际化
 import enLocale from "element-plus/es/locale/lang/en";
@@ -82,6 +83,8 @@ const i18n: I18n = createI18n({
   messages: localesConfigs,
   globalInjection: true,
 });
+
+configureRouteTitleTranslator((key) => i18n.global.t(key) as string);
 
 /**
  * 全局注册 I18n，使用示例：

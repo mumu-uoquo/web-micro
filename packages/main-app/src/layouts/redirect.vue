@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter, type LocationQuery } from "vue-router";
-import { isExternal } from "@/utils/index";
+import { isExternal } from "@/utils";
 
 /* ***************************** 提取URL和参数 ********************************* */
 const router = useRouter();
@@ -19,6 +19,7 @@ if (!_path) {
 
 // 1. 参数处理
 const _params = handleParams({ ...query, ...(meta.params as Record<string, string>) });
+// console.log("redirect.vue src:", _path, meta.src, params.path, path, meta.target, params, query, _params, meta, route, router.currentRoute);
 // 2. 路由处理
 if (!_path) {
   router.push({ path: "/error/404", replace: true });

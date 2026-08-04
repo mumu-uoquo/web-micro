@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { WarnTriangleFilled } from "@element-plus/icons-vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { type LogUserOnlineDto } from "@/api/adminLogs";
 
 /* ***************************** 参数定义 ********************************* */

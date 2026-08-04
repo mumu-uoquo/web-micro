@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { User, Iphone, Grid, Loading, RefreshRight } from "@element-plus/icons-vue";
 import { useUserStore, useSettingsStore } from "@/stores";
-import { encrypt } from "@web-micro/shared";
+import { encrypt } from "@/utils";
 import { appConfig } from "@/settings";
 import AuthAPI from "@/api/auth";
 const emits = defineEmits<{

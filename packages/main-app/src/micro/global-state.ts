@@ -10,7 +10,7 @@
  */
 
 import { initGlobalState, type MicroAppStateActions } from "qiankun";
-import { AuthStorage } from "@web-micro/shared";
+import { AuthStorage } from "@/utils";
 
 // ─── Global_State 数据结构 ─────────────────────────────────────────────────────
 

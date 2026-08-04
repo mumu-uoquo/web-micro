@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { ZoomIn, Download } from "@element-plus/icons-vue";
 import { UploadFileDto } from "@/api/dfs";
-import FileUtil from "@/utils/file";
+import { FileUtil } from "@/utils";
 
 const emits = defineEmits(["on-download"]);
 const props = defineProps({
@@ -52,8 +52,12 @@ const handlePreviewShown = (index: number) => {
   previewIndex.value = previewList.value.findIndex((url) => url === imageUrl);
   previewVisible.value = true;
 };
-const handlePreviewDown = (row: UploadFileDto) => { emits("on-download", row); };
-const handlePreviewClose = () => { previewVisible.value = false; };
+const handlePreviewDown = (row: UploadFileDto) => {
+  emits("on-download", row);
+};
+const handlePreviewClose = () => {
+  previewVisible.value = false;
+};
 
 watch(
   modelValue,

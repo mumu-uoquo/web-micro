@@ -1,6 +1,6 @@
-import { AuthStorage, generateSignature } from "@web-micro/shared";
-import { USER_BASE_URL } from "@/api/user";
-import { isMainWindow } from "@/utils/ticket";
+import { AuthStorage, generateSignature } from "@/utils";
+import { USER_BASE_URL } from "@/api/sse";
+import { isMainWindow } from "@/utils";
 
 export interface UseSseOptions {
   url?: string; // SSE 连接地址，默认走 VITE_APP_BASE_API 代理

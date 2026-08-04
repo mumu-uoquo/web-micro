@@ -54,7 +54,7 @@
 import { Plus, CircleCloseFilled, RefreshLeft } from "@element-plus/icons-vue";
 import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
 import DfsAPI, { UploadFileDto } from "@/api/dfs";
-import FileUtil from "@/utils/file";
+import { FileUtil } from "@/utils";
 
 const props = withDefaults(
   defineProps<{
@@ -93,9 +93,16 @@ function handleBeforeUpload(file: UploadRawFile) {
     if (type.startsWith(".")) return file.name.toLowerCase().endsWith(type);
     return file.type === type;
   });
-  if (!isValidType) { ElMessage.warning(`上传文件的格式不正确，仅支持：${props.accept}`); return false; }
-  if (file.size > props.maxFileSize * 1024 * 1024) { ElMessage.warning("上传文件不能大于" + props.maxFileSize + "M"); return false; }
-  if (currentFile.value.uploadCode) DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] });
+  if (!isValidType) {
+    ElMessage.warning(`上传文件的格式不正确，仅支持：${props.accept}`);
+    return false;
+  }
+  if (file.size > props.maxFileSize * 1024 * 1024) {
+    ElMessage.warning("上传文件不能大于" + props.maxFileSize + "M");
+    return false;
+  }
+  if (currentFile.value.uploadCode)
+    DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] });
   return true;
 }
 
@@ -103,9 +110,19 @@ function handleUpload(options: UploadRequestOptions) {
   return new Promise((resolve, reject) => {
     const file = options.file;
     progressOnStart();
-    FileUtil.upload(file, { fileName: file.name, fileContent: "", finalFile: true }, progressOnChange)
-      .then((res) => { progressOnSuccess(); resolve(res); })
-      .catch((error) => { progressOnError(); reject(error); });
+    FileUtil.upload(
+      file,
+      { fileName: file.name, fileContent: "", finalFile: true },
+      progressOnChange
+    )
+      .then((res) => {
+        progressOnSuccess();
+        resolve(res);
+      })
+      .catch((error) => {
+        progressOnError();
+        reject(error);
+      });
   });
 }
 
@@ -115,17 +132,25 @@ const onSuccess = (fileInfo: UploadFileDto, uploadFile: UploadUserFile) => {
   currentFile.value.isPicture = FileUtil.isPicture(uploadFile.raw!.type, uploadFile.name);
 };
 
-const onError = (error: any) => { console.log("onError", error); };
+const onError = (error: any) => {
+  console.log("onError", error);
+};
 
 function handleDelete() {
-  if (!currentFile.value?.uploadCode) { currentFile.value = { filePath: "", name: "" }; return; }
+  if (!currentFile.value?.uploadCode) {
+    currentFile.value = { filePath: "", name: "" };
+    return;
+  }
   DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] }).finally(() => {
     currentFile.value = { filePath: "", name: "" };
   });
 }
 
 function handleUndo() {
-  if (!currentFile.value?.uploadCode) { currentFile.value = Object.assign({ name: "" }, initFile.value); return; }
+  if (!currentFile.value?.uploadCode) {
+    currentFile.value = Object.assign({ name: "" }, initFile.value);
+    return;
+  }
   DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] }).finally(() => {
     currentFile.value = Object.assign({}, initFile.value);
   });
@@ -134,13 +159,31 @@ function handleUndo() {
 const showProgress = ref(false);
 const progressPercent = ref(0);
 const progressStatus = ref<"" | "success" | "warning">("");
-function progressOnStart() { showProgress.value = true; progressStatus.value = ""; progressPercent.value = 0; }
-function progressOnChange(percent: number) { progressPercent.value = parseInt(percent.toFixed(0)); }
-function progressOnSuccess() { progressStatus.value = "success"; progressPercent.value = 100; setTimeout(() => { showProgress.value = false; }, 1000); }
-function progressOnError() { progressStatus.value = "warning"; setTimeout(() => { showProgress.value = false; }, 1000); }
+function progressOnStart() {
+  showProgress.value = true;
+  progressStatus.value = "";
+  progressPercent.value = 0;
+}
+function progressOnChange(percent: number) {
+  progressPercent.value = parseInt(percent.toFixed(0));
+}
+function progressOnSuccess() {
+  progressStatus.value = "success";
+  progressPercent.value = 100;
+  setTimeout(() => {
+    showProgress.value = false;
+  }, 1000);
+}
+function progressOnError() {
+  progressStatus.value = "warning";
+  setTimeout(() => {
+    showProgress.value = false;
+  }, 1000);
+}
 
 const clear = (clearTempFile: boolean = true) => {
-  if (clearTempFile && currentFile.value.uploadCode) DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] });
+  if (clearTempFile && currentFile.value.uploadCode)
+    DfsAPI.clearTempFile({ uploadCodes: [currentFile.value.uploadCode] });
   currentFile.value = { filePath: "", name: "" };
   showProgress.value = false;
 };
@@ -183,8 +226,15 @@ defineExpose({ clear, getFile, setFile });
 }
 .el-upload-thumbnail {
   line-height: initial;
-  &__image { width: 100%; height: 100%; object-fit: contain; }
-  &__name { display: inline-block; padding-top: 18px; }
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  &__name {
+    display: inline-block;
+    padding-top: 18px;
+  }
 }
 .single-upload {
   position: relative;
@@ -193,8 +243,11 @@ defineExpose({ clear, getFile, setFile });
   cursor: pointer;
   border: 1px var(--el-border-color) solid;
   border-radius: 5px;
-  &:hover { border-color: var(--el-color-primary); }
-  &__undo-btn, &__delete-btn {
+  &:hover {
+    border-color: var(--el-color-primary);
+  }
+  &__undo-btn,
+  &__delete-btn {
     position: absolute;
     top: 1px;
     font-size: 16px;
@@ -202,10 +255,19 @@ defineExpose({ clear, getFile, setFile });
     cursor: pointer;
     background: #fff;
     border-radius: 100%;
-    :hover { color: #ff4500; }
+    :hover {
+      color: #ff4500;
+    }
   }
-  &__undo-btn { left: 1px; }
-  &__delete-btn { right: 1px; }
+  &__undo-btn {
+    left: 1px;
+  }
+  &__delete-btn {
+    right: 1px;
+  }
 }
-.single-upload__add-btn { font-size: 28px; color: var(--el-text-color-secondary); }
+.single-upload__add-btn {
+  font-size: 28px;
+  color: var(--el-text-color-secondary);
+}
 </style>

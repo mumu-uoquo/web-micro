@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useNoticeSync } from "@/composables/sse";
 import MessageAPI, { type MsgInfoViewDto } from "@/api/message";

@@ -146,7 +146,7 @@ import { InfoFilled } from "@element-plus/icons-vue";
 import type { FormInstance, FormRules } from "element-plus";
 import SystemAPI from "@/api/system";
 import type { SettingSaveParam, SettingDto } from "@/api/system";
-import { decrypt } from "@web-micro/shared";
+import { decrypt } from "@/utils";
 
 function decryptSettings(settings: SettingDto[]): SettingDto[] {
   return settings.map((item) => {

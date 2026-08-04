@@ -70,8 +70,7 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
-import { parseReturnCode, parseDictCode } from "@/utils/common";
-import { formatDate } from "@/utils/format";
+import { parseReturnCode, parseDictCode, formatDate } from "@/utils";
 import DictTag from "@/components/DictTag/index.vue";
 import LogsAPI, { type BizEventRecordDto } from "@/api/logs";
 

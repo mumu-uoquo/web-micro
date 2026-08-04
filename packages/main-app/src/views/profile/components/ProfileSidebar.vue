@@ -119,7 +119,7 @@
 import { ref, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { Edit, Select, Close } from "@element-plus/icons-vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import UserAPI, { type UserInfoDto } from "@/api/user";
 import { maskRealName, maskPhone, maskEmail } from "@/views/profile/composables/useMaskUtils";
 import AvatarUpload from "./AvatarUpload.vue";

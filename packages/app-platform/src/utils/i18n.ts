@@ -1,7 +1,14 @@
 /**
  * i18n 工具函数
  */
-import i18n from "@/plugins/i18n";
+
+type RouteTitleTranslator = (key: string) => string;
+
+let routeTitleTranslator: RouteTitleTranslator | undefined;
+
+export function configureRouteTitleTranslator(translator: RouteTitleTranslator): void {
+  routeTitleTranslator = translator;
+}
 
 /**
  * 翻译路由标题
@@ -11,9 +18,8 @@ export function translateRouteTitle(title: unknown): string {
   if (!title || typeof title !== "string") {
     return "";
   }
-  const t = i18n.global.t as (key: string) => string;
   if (title.startsWith("route.")) {
-    return t(title);
+    return routeTitleTranslator?.(title) ?? title;
   }
   return title;
 }

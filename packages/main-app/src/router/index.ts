@@ -8,11 +8,12 @@ import {
 } from "vue-router";
 
 /**
- * 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件
+ * 自动导入全部静态路由，无需再手动引入！匹配 src/router/modules 目录（任何嵌套级别）中具有 .ts 扩展名的所有文件，除了 remaining.ts 文件
  * 如何匹配所有文件请看：https://github.com/mrmlnc/fast-glob#basic-syntax
  * 如何排除文件请看：https://cn.vitejs.dev/guide/features.html#negative-patterns
  */
 const modules: Record<string, any> = import.meta.glob(
+  // ["./modules/**/*.ts", "!./modules/**/remaining.ts"],
   ["./modules/**/*.ts"],
   {
     eager: true,
@@ -35,6 +36,8 @@ const router = createRouter({
   history: getHistoryMode(""),
   routes: constantRoutes,
   strict: true,
+  // 刷新时，滚动条直接回到顶部
+  // scrollBehavior: () => ({ left: 0, top: 0 }),
   // 刷新时，滚动条尝试定位到上一次的位置
   scrollBehavior: (to, from, savedPosition) => {
     return new Promise((resolve) => {

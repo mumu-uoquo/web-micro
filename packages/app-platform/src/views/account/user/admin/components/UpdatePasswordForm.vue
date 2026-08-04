@@ -47,8 +47,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useSettingsStore } from "@/stores";
 import AdminUserAPI, { UserInfoDto, ChangePasswordParam } from "@/api/adminUser";
-import { passwordComplex } from "@/utils/common";
-import { encrypt } from "@web-micro/shared";
+import { passwordComplex, encrypt } from "@/utils";
 
 const settingsStore = useSettingsStore();
 

@@ -124,8 +124,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { Search, CircleClose, Document, Refresh } from "@element-plus/icons-vue";
-import { parseReturnCode } from "@/utils/common";
-import { formatDate } from "@/utils/format";
+import { parseReturnCode, formatDate } from "@/utils";
 import { useReturnCodeStore } from "@/stores";
 import AdminLogsAPI, { type LogsAuthSearchParam, type LogUserLoginDto } from "@/api/adminLogs";
 import AdminUserAPI, { type UserListParam, type UserInfoDto } from "@/api/adminUser";

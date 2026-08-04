@@ -24,8 +24,7 @@ import { pinia } from "./stores";
 import { setupI18n } from "./plugins/i18n";
 import ElementPlus from "element-plus";
 import { setupPermissionDirective, updatePermissions } from "./directives/permission";
-import { AuthStorage } from "@web-micro/shared";
-import { consumeTabTicket } from "./utils/ticket";
+import { AuthStorage, consumeTabTicket } from "@/utils";
 import { qiankunWindow, renderWithQiankun } from "vite-plugin-qiankun/dist/helper";
 
 // ── qiankun 全局标志声明 ────────────────────────────────────────────────────

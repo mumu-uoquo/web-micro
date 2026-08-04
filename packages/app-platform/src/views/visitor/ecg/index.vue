@@ -3,6 +3,7 @@
     <h1>访客页面 /ecg/index</h1>
     <p>使用场景：xxxx</p>
     <div class="back" title="返回上一页" @click="router.go(-1)">
+      <svg-icon name="back" :size="100" />
     </div>
   </div>
 </template>

@@ -285,7 +285,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import DictTag from "@/components/DictTag/index.vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import {
   Plus,
   Edit,

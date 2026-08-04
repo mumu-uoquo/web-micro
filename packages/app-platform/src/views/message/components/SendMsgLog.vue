@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from "vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { MsgInfoListParam, MsgPushLogDto, PageResultMsgPushLogDto } from "@/api/message";
 import DictTag from "@/components/DictTag/index.vue";
 

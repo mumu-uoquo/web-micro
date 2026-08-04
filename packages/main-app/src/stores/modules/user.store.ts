@@ -1,9 +1,9 @@
 import { store, useDictStoreHook, usePermissionStoreHook, useTagsViewStore } from "@/stores";
-import { AuthStorage } from "@web-micro/shared";
+import { AuthStorage } from "@/utils";
 import AuthAPI, { type UserAuthDto, type TokenDto, type TokenLoginParam } from "@/api/auth";
 import type { RouteRecordRaw } from "vue-router";
 import router from "@/router";
-import { isMainWindow } from "@/utils/ticket";
+import { isMainWindow } from "@/utils";
 import { useSse, cleanupSse, useNoticeSync } from "@/composables/sse";
 
 import { getGlobalActions } from "@/micro/global-state";

@@ -28,7 +28,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { MsgInfoViewDto } from "@/api/message";
 import DictTag from "@/components/DictTag/index.vue";
 

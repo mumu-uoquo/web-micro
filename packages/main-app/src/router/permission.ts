@@ -1,7 +1,7 @@
 import type { RouteLocationNormalized } from "vue-router";
 import NProgress from "@/plugins/nprogress";
 import router from "@/router";
-import { redirectToLogin } from "@web-micro/shared";
+import { redirectToLogin } from "@/utils";
 import { usePermissionStore, useUserStore, useAppStore } from "@/stores";
 
 export function setupPermissionGuard() {

@@ -1,6 +1,6 @@
 import { store } from "@/stores";
 import SystemAPI from "@/api/system";
-import { STORAGE_KEYS } from "@web-micro/shared";
+import { STORAGE_KEYS } from "@/utils";
 
 export const useReturnCodeStore = defineStore("returnCode", () => {
   // 响应码数据缓存

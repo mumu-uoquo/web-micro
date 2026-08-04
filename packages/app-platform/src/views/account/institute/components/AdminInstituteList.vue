@@ -131,7 +131,7 @@ import { ref, reactive, watch, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import DictTag from "@/components/DictTag/index.vue";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import AdminInstituteInfoForm from "./AdminInstituteInfoForm.vue";
 import { Edit, Delete, Search, Tools, WarnTriangleFilled } from "@element-plus/icons-vue";
 import AdminInstituteAPI, {

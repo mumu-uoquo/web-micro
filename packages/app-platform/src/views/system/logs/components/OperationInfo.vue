@@ -122,8 +122,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { Promotion, WarnTriangleFilled } from "@element-plus/icons-vue";
-import { parseReturnCode, parseDictCode } from "@/utils/common";
-import { formatDate } from "@/utils/format";
+import { parseReturnCode, parseDictCode, formatDate } from "@/utils";
 import DictTag from "@/components/DictTag/index.vue";
 import AdminLogsAPI, { type BizEventRetryDto, type BizEventRecordDto } from "@/api/adminLogs";
 

@@ -8,8 +8,8 @@ import { useWindowSize } from "@vueuse/core";
 import { useAppStore, usePermissionStore, useSettingsStore } from "@/stores";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import { defaults } from "@/settings";
-import { AuthStorage } from "@web-micro/shared";
-import { writeTabTicket } from "@/utils/ticket";
+import { AuthStorage } from "@/utils";
+import { writeTabTicket } from "@/utils";
 import type { MenuNode } from "@/stores/modules/permission.store";
 
 const DESKTOP_BREAKPOINT = 992;

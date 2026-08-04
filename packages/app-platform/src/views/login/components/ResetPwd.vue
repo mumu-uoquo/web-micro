@@ -128,7 +128,7 @@
 <script setup lang="ts">
 import { Lock, Loading, Iphone, ChatDotRound } from "@element-plus/icons-vue";
 import { useSettingsStore } from "@/stores";
-import { encrypt } from "@web-micro/shared";
+import { encrypt } from "@/utils";
 import AuthAPI, { type ResetPasswordParam } from "@/api/auth";
 
 const { t } = useI18n();

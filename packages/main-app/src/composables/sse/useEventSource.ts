@@ -7,9 +7,7 @@
  *
  * 迁移自 web-monolith/src/composables/sse/useEventSource.ts
  * 调整：
- *   - `@/utils/auth` → `@web-micro/shared`
- *   - `@/utils/common` → `@web-micro/shared`
- *   - `@/utils/crypto` → `@web-micro/shared`
+ *   - legacy auth/common/crypto utils → `@web-micro/shared`
  *   - `@/constants` → `@/constants`（main-app 本地）
  *   - `@/stores` → `@/stores`（main-app 本地）
  *   - `@/api/sse` → `@/api/user`（USER_BASE_URL）
@@ -21,8 +19,8 @@ import {
   EventSourceMessage,
   EventStreamContentType,
 } from "@microsoft/fetch-event-source";
-import { AuthStorage, guid, encrypt } from "@web-micro/shared";
-import { STORAGE_KEYS } from "@web-micro/shared";
+import { AuthStorage, guid, encrypt } from "@/utils";
+import { STORAGE_KEYS } from "@/utils";
 import { ResultEnum } from "@/enums/system/result.enum";
 import { useUserStoreHook } from "@/stores";
 

@@ -143,7 +143,7 @@ import {
   WarnTriangleFilled,
 } from "@element-plus/icons-vue";
 import { useUserStore, useReturnCodeStore } from "@/stores";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import AdminLogsAPI, { type OnlineUserSearchParam, type LogUserOnlineDto } from "@/api/adminLogs";
 import AdminInstituteAPI, {
   type InstituteInfoDto,

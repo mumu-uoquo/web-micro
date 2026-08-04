@@ -1,7 +1,7 @@
-import { createHttpInstance } from '@web-micro/shared'
-import type { UserStoreAdapter } from '@web-micro/shared'
-import { useUserStore } from '@/stores'
-import { ElMessage } from 'element-plus'
+import { createHttpInstance } from "@/utils";
+import type { UserStoreAdapter } from "@/utils";
+import { useUserStore } from "@/stores";
+import { ElMessage } from "element-plus";
 
 /**
  * main-app 的 UserStore 适配器
@@ -9,7 +9,7 @@ import { ElMessage } from 'element-plus'
  */
 const userStoreAdapter: UserStoreAdapter = {
   refreshToken: () => useUserStore().refreshToken(),
-}
+};
 
 /**
  * main-app 全局 HTTP 实例
@@ -25,7 +25,7 @@ export const http = createHttpInstance(
     timeout: 15000,
   },
   userStoreAdapter,
-  (message) => ElMessage({ message: message || '系统出错', grouping: true, type: 'error' }),
-)
+  (message) => ElMessage({ message: message || "系统出错", grouping: true, type: "error" })
+);
 
-export default http
+export default http;

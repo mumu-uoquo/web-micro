@@ -84,8 +84,7 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
-import { parseReturnCode } from "@/utils/common";
-import { formatDate, parseDate } from "@/utils/format";
+import { parseReturnCode, formatDate, parseDate } from "@/utils";
 import { LogUserLoginDto } from "@/api/adminLogs";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";

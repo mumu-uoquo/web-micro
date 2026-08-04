@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { ElMessage } from "element-plus";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import FileListViewer from "@/components/Upload/FileListViewer.vue";
 import MessageAPI, { MsgInfoViewDto, MsgAttachmentDto } from "@/api/message";

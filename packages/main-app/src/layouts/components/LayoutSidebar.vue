@@ -31,7 +31,7 @@ import type { MenuInstance } from "element-plus";
 import type { RouteRecordRaw } from "vue-router";
 import { SidebarColor, ThemeMode } from "@/enums";
 import { useSettingsStore, useAppStore } from "@/stores";
-import { isExternal } from "@/utils/index";
+import { isExternal } from "@/utils";
 import LayoutSidebarItem from "./LayoutSidebarItem.vue";
 import variables from "@/styles/variables.module.scss";
 

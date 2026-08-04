@@ -96,8 +96,7 @@
 import { User, Lock, Loading } from "@element-plus/icons-vue";
 import { useUserStore, useSettingsStore } from "@/stores";
 import { appConfig } from "@/settings";
-import { encrypt } from "@web-micro/shared";
-import { AuthStorage } from "@web-micro/shared";
+import { encrypt, AuthStorage } from "@/utils";
 import AuthAPI, { type AccountLoginParam } from "@/api/auth";
 
 /* ***************************** 参数定义 ********************************* */

@@ -203,8 +203,7 @@ import {
   Promotion,
   WarnTriangleFilled,
 } from "@element-plus/icons-vue";
-import { parseReturnCode } from "@/utils/common";
-import { formatDate } from "@/utils/format";
+import { parseReturnCode, formatDate } from "@/utils";
 import { useDictStore, useReturnCodeStore } from "@/stores";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import AdminLogsAPI, {

@@ -1,59 +1,65 @@
 <template>
-  <div class="error-page">
-    <div class="error-content">
-      <h1 class="error-code">404</h1>
-      <p class="error-message">抱歉，您访问的页面不存在</p>
-      <router-link to="/" class="home-link">返回首页</router-link>
+  <div class="wh-full mx-auto flex-center flex-col lg:flex-row">
+    <img class="min-w-[23.4375rem] sm:w-150" src="@/assets/images/error/404.svg" alt="404" />
+    <div class="w-75">
+      <div class="oops mb-5 text-[2rem] font-bold">OOPS</div>
+      <div class="info text-gray mb-7 text-[0.8125rem]">
+        该页面无法访问
+        <el-link type="primary" href="https://www.youlai.tech" target="_blank">
+          有来开源官网
+        </el-link>
+      </div>
+      <div class="headline mb-2.5 text-xl font-bold text-[#222]">抱歉，您访问的页面不存在</div>
+      <div class="info text-gray mb-7 text-[0.8125rem]">
+        请确认您输入的网址是否正确，或者点击下方按钮返回首页
+      </div>
+      <el-button round type="primary" class="btn h-9 w-28 mb-10" @click="back">返回首页</el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: "Page404",
-});
+import { useRouter } from "vue-router";
+defineOptions({ name: "Page404" });
+const router = useRouter();
+const back = () => router.push("/");
 </script>
 
 <style lang="scss" scoped>
-.error-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
+@mixin slide-up-animation($delay: 0s) {
+  opacity: 0;
+  animation-name: slideUp;
+  animation-duration: 0.5s;
+  animation-delay: $delay;
+  animation-fill-mode: forwards;
+}
 
-  .error-content {
-    text-align: center;
-
-    .error-code {
-      margin: 0 0 16px;
-      font-size: 72px;
-      font-weight: bold;
-      color: var(--el-color-primary, #409eff);
-      line-height: 1;
-    }
-
-    .error-message {
-      margin: 0 0 24px;
-      font-size: 16px;
-      color: var(--el-text-color-secondary, #909399);
-    }
-
-    .home-link {
-      display: inline-block;
-      padding: 8px 24px;
-      font-size: 14px;
-      color: #fff;
-      text-decoration: none;
-      background-color: var(--el-color-primary, #409eff);
-      border-radius: 4px;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: var(--el-color-primary-light-3, #79bbff);
-      }
-    }
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(60px);
   }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.oops {
+  color: var(--el-color-primary);
+  @include slide-up-animation(0s);
+}
+
+.headline {
+  @include slide-up-animation(0.1s);
+}
+
+.info {
+  @include slide-up-animation(0.2s);
+}
+
+.btn {
+  @include slide-up-animation(0.3s);
 }
 </style>

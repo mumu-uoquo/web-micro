@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { ElMessage } from "element-plus";
-import { formatDate } from "@/utils/format";
+import { formatDate } from "@/utils";
 import { Edit, Delete, Promotion, ToiletPaper, WarnTriangleFilled } from "@element-plus/icons-vue";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import FileListViewer from "@/components/Upload/FileListViewer.vue";

@@ -45,7 +45,7 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import SystemAPI from "@/api/system";
 import type { SettingSaveParam, SettingDto } from "@/api/system";
-import { decrypt } from "@web-micro/shared";
+import { decrypt } from "@/utils";
 
 /**
  * 对配置项的 configValue 做 taes 解密
