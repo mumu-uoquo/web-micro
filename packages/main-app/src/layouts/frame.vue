@@ -20,7 +20,7 @@ if (_path && isExternal(_path)) {
   showFrame.value = true;
 } else {
   showFrame.value = false;
-  // ²ÉÓÃrouter.push½«»á´ò¿ªĞÂ±êÇ©£¬ËùÒÔ²ÉÓÃ×é¼şµÄ·½Ê½ÒıÈë404Ò³Ãæ
+  // é‡‡ç”¨ router.push å°†ä¼šæ‰“å¼€æ–°æ ‡ç­¾ï¼Œæ‰€ä»¥é‡‡ç”¨ç»„ä»¶æ–¹å¼å¼•å…¥ 404 é¡µé¢
   // router.push({ path: "/error/404", replace: true });
 }
 </script>
