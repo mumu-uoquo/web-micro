@@ -1,8 +1,23 @@
+import { ref, watch } from "vue";
+import { defineStore } from "pinia";
+import { useRoute, useRouter } from "vue-router";
+import { setRetainedMicroAppRoutePaths } from "@/micro/config";
+import { getGlobalActions } from "@/micro/global-state";
+
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
   const cachedViews = ref<string[]>([]);
   const router = useRouter();
   const route = useRoute();
+
+  watch(
+    [visitedViews, cachedViews],
+    () => {
+      setRetainedMicroAppRoutePaths(visitedViews.value.map((view) => view.path));
+      getGlobalActions().setState({ cachedViews: [...cachedViews.value] });
+    },
+    { deep: true, flush: "sync" }
+  );
 
   /**
    * 添加已访问视图到已访问视图列表中
@@ -27,15 +42,15 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   /**
    * 添加缓存视图到缓存视图列表中
    */
-  function addCachedView({ fullPath, keepAlive }: TagView) {
+  function addCachedView({ path, keepAlive }: TagView) {
     // 如果缓存视图名称已经存在于缓存视图列表中，则不再添加
-    if (cachedViews.value.includes(fullPath)) {
+    if (cachedViews.value.includes(path)) {
       return;
     }
 
     // 如果视图需要缓存（keepAlive），则将其路由名称添加到缓存视图列表中
     if (keepAlive) {
-      cachedViews.value.push(fullPath);
+      cachedViews.value.push(path);
     }
   }
 
@@ -56,9 +71,9 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delCachedView(view: TagView) {
-    const { fullPath } = view;
+    const { path } = view;
     return new Promise((resolve) => {
-      const index = cachedViews.value.indexOf(fullPath);
+      const index = cachedViews.value.indexOf(path);
       if (index > -1) {
         cachedViews.value.splice(index, 1);
       }
@@ -75,9 +90,9 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   }
 
   function delOtherCachedViews(view: TagView) {
-    const { fullPath } = view;
+    const { path } = view;
     return new Promise((resolve) => {
-      const index = cachedViews.value.indexOf(fullPath);
+      const index = cachedViews.value.indexOf(path);
       if (index > -1) {
         cachedViews.value = cachedViews.value.slice(index, index + 1);
       } else {
@@ -148,7 +163,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
           return true;
         }
 
-        const cacheIndex = cachedViews.value.indexOf(item.fullPath);
+        const cacheIndex = cachedViews.value.indexOf(item.path);
         if (cacheIndex > -1) {
           cachedViews.value.splice(cacheIndex, 1);
         }
@@ -170,7 +185,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
         if (index <= currIndex || item?.affix) {
           return true;
         }
-        const cacheIndex = cachedViews.value.indexOf(item.fullPath);
+        const cacheIndex = cachedViews.value.indexOf(item.path);
         if (cacheIndex > -1) {
           cachedViews.value.splice(cacheIndex, 1);
         }
@@ -191,6 +206,20 @@ export const useTagsViewStore = defineStore("tagsView", () => {
         visitedViews: [...visitedViews.value],
         cachedViews: [...cachedViews.value],
       });
+    });
+  }
+
+  /**
+   * 彻底清空标签与 KeepAlive 缓存。
+   * 与供 UI 使用的 delAllViews 不同，该方法不会保留 affix 标签，
+   * 用于登出等需要释放当前会话全部页面实例的场景。
+   */
+  function resetViews() {
+    visitedViews.value = [];
+    cachedViews.value = [];
+    return Promise.resolve({
+      visitedViews: [] as TagView[],
+      cachedViews: [] as string[],
     });
   }
 
@@ -266,6 +295,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     delLeftViews,
     delRightViews,
     delAllViews,
+    resetViews,
     delAllVisitedViews,
     delAllCachedViews,
     closeCurrentView,

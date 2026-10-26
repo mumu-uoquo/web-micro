@@ -601,6 +601,8 @@ export interface AppInfoDto {
   statusTime?: string;
   /** 模板类型（006） */
   templateType?: string;
+  /** 可信IP */
+  trustIps?: string;
   /** 可信站点 */
   trustSite?: string;
   /** 更新时间 */
@@ -647,6 +649,8 @@ export interface AppInfoParam {
   secret?: string;
   /** 模板类型 */
   templateType?: string;
+  /** 可信IP */
+  trustIps?: string;
   /** 可信站点 */
   trustSite?: string;
 }

@@ -168,6 +168,8 @@ export interface ModuleInfoDto {
   id: string;
   /** 菜单名称 */
   menuName?: string;
+  /** 微前端名 */
+  microApp?: string;
   /** 模块编码 */
   moduleCode?: string;
   /** 模块名字 */
@@ -206,6 +208,8 @@ export interface ModuleTreeDto {
   id: string;
   /** 菜单名称 */
   menuName?: string;
+  /** 微前端名 */
+  microApp?: string;
   /** 模块编码 */
   moduleCode?: string;
   /** 模块名字 */
@@ -254,6 +258,8 @@ export interface ModuleInfoParam {
   id?: string;
   /** 菜单名称 */
   menuName?: string;
+  /** 微前端名，仅允许字母、数字、中横线和下划线 */
+  microApp?: string;
   /** 模块编码 */
   moduleCode: string;
   /** 模块名字 */

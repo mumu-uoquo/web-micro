@@ -341,8 +341,6 @@ export interface IdParam {
  * 模块信息（树状）
  */
 export interface ModuleTreeDto {
-  /** 微前端名 */
-  microApp?: string;
   /** 子节点 */
   children?: ModuleTreeDto[];
   /** 备注描述 */
@@ -353,6 +351,8 @@ export interface ModuleTreeDto {
   id: string;
   /** 菜单名称 */
   menuName?: string;
+  /** 微前端名 */
+  microApp?: string;
   /** 模块编码 */
   moduleCode?: string;
   /** 模块名字 */

@@ -20,6 +20,7 @@ import "animate.css";
 
 // ===== 核心配置 =====
 import { createAppRouter, disposeAppRouter } from "./router/index";
+import { syncCachedViews } from "./router/cache";
 import { pinia } from "./stores";
 import { setupI18n } from "./plugins/i18n";
 import ElementPlus from "element-plus";
@@ -39,6 +40,7 @@ export interface GlobalState {
   token: string;
   userInfo: Record<string, any>;
   permissions: string[];
+  cachedViews: string[];
   [key: string]: any;
 }
 
@@ -49,6 +51,7 @@ export interface QiankunProps {
   token: string;
   userInfo: Record<string, any>;
   permissions: string[];
+  cachedViews?: string[];
   /** 订阅 Global_State 变更 */
   onGlobalStateChange: (
     callback: (state: GlobalState, prev: GlobalState) => void,
@@ -70,6 +73,9 @@ let mountedContainer: HTMLElement | null = null;
 function syncGlobalState(state: GlobalState): void {
   if (Array.isArray(state.permissions)) {
     updatePermissions(state.permissions);
+  }
+  if (Array.isArray(state.cachedViews)) {
+    syncCachedViews(state.cachedViews);
   }
 }
 

@@ -18,13 +18,44 @@ export interface MicroAppConfig {
   readonly props: MicroAppPropsFactory;
 }
 
+let retainedMicroAppRoutePaths: string[] = [];
+let rerouteScheduled = false;
+
+function scheduleMicroAppReroute(): void {
+  if (typeof window === "undefined" || rerouteScheduled) return;
+
+  rerouteScheduled = true;
+  queueMicrotask(() => {
+    rerouteScheduled = false;
+    // retained path 不是浏览器 URL 的一部分，移除最后一个微应用标签时
+    // 需要主动通知 single-spa/qiankun 重新计算 activeRule 并执行 unmount。
+    window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }));
+  });
+}
+
+export function setRetainedMicroAppRoutePaths(paths: string[]): void {
+  const nextPaths = [...new Set(paths)];
+  const removedLastRetainedRoute = MICRO_APP_CONFIGS.some(
+    (config) =>
+      retainedMicroAppRoutePaths.some((path) => matchesActiveRule(path, config.activeRule)) &&
+      !nextPaths.some((path) => matchesActiveRule(path, config.activeRule))
+  );
+
+  retainedMicroAppRoutePaths = nextPaths;
+
+  if (removedLastRetainedRoute) {
+    scheduleMicroAppReroute();
+  }
+}
+
 /** 所有子应用默认共享的主应用状态；在每次生命周期执行前动态读取。 */
 export function getMicroAppProps(): Record<string, unknown> {
-  const { token, userInfo, permissions } = getGlobalActions().getState();
+  const { token, userInfo, permissions, cachedViews } = getGlobalActions().getState();
   return {
     token: AuthStorage.getAccessToken() || token,
     userInfo,
     permissions,
+    cachedViews,
   };
 }
 
@@ -63,7 +94,9 @@ export function resolveMicroAppEntry(config: MicroAppConfig): string {
 
 /** 将字符串 activeRule 转换为适用于主应用 Hash Router 的 qiankun 激活函数。 */
 export function createHashActiveRule(activeRule: string): (location: Location) => boolean {
-  return (location) => matchesActiveRule(location.hash.slice(1), activeRule);
+  return (location) =>
+    matchesActiveRule(location.hash.slice(1), activeRule) ||
+    retainedMicroAppRoutePaths.some((path) => matchesActiveRule(path, activeRule));
 }
 
 /** 将后端应用名、activeRule 名称统一成注册配置中的应用名。 */

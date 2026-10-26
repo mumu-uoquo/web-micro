@@ -30,6 +30,8 @@ interface GlobalState {
   };
   /** 权限码数组，来自 permissionStore.generateRoutes 返回的 moduleType=005002 节点的 moduleCode */
   permissions: string[];
+  /** 主应用中需要保留实例的标签 path */
+  cachedViews: string[];
   /** 全屏信号：非 null 时触发全屏切换，处理后重置为 null */
   fullscreen: boolean | null;
   /** 通知状态 */
@@ -47,6 +49,7 @@ let _currentState: GlobalState = {
   token: AuthStorage.getAccessToken() ?? "",
   userInfo: {},
   permissions: [],
+  cachedViews: [],
   fullscreen: null,
   notifications: { unreadCount: 0 },
 };
@@ -58,6 +61,8 @@ let _currentState: GlobalState = {
  * 在 main.ts 中 setupStore 之后调用
  */
 export function initAppGlobalState() {
+  // HMR 或重复 bootstrap 前先移除旧监听，避免 Global_State 回调累积。
+  _actions?.offGlobalStateChange();
   _actions = initGlobalState({ ..._currentState });
 
   // 主应用监听 Global_State 变更

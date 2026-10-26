@@ -4,11 +4,15 @@
     <div v-show="microAppRouteActive" id="sub-app-container"></div>
 
     <!-- 微应用路由由 qiankun 渲染，避免宿主 Page404 与子应用争用内容区 -->
-    <router-view v-if="!microAppRouteActive">
+    <router-view>
       <template #default="{ Component, route }">
         <transition :name="transitionName" mode="out-in">
           <keep-alive :include="cachedViews">
-            <component :is="currentComponent(Component, route)" :key="route.fullPath" />
+            <component
+              :is="currentComponent(Component, route)"
+              v-if="!isMicroAppRoute(route.path, route.meta.microApp)"
+              :key="route.path"
+            />
           </keep-alive>
         </transition>
       </template>
@@ -30,16 +34,21 @@ import Error404 from "@/views/error/404.vue";
 
 const route = useRoute();
 const microAppRouteActive = computed(() => isMicroAppRoute(route.path, route.meta.microApp));
-const { cachedViews } = toRefs(useTagsViewStore());
+const tagsViewStore = useTagsViewStore();
+const { visitedViews, cachedViews } = toRefs(tagsViewStore);
 
 const settingsStore = useSettingsStore();
 
-// 当前组件
+// 路由组件包装器仅服务于仍在标签/KeepAlive 中或当前正在展示的页面。
+// 标签关闭后及时删除，避免动态路由 path 对应的组件闭包永久滞留。
 const wrapperMap = new Map<string, Component>();
-const currentComponent = (component: Component, route: RouteLocationNormalized) => {
+const currentComponent = (
+  component: Component,
+  route: RouteLocationNormalized
+): Component | undefined => {
   if (!component) return;
 
-  const { fullPath: componentName } = route; // 使用路由路径作为组件名称
+  const componentName = route.path;
   let wrapper = wrapperMap.get(componentName);
 
   if (!wrapper) {
@@ -47,7 +56,7 @@ const currentComponent = (component: Component, route: RouteLocationNormalized) 
       name: componentName,
       render: () => {
         try {
-          return h(component);
+          return h(component, { key: componentName });
         } catch (error) {
           console.error(`Error rendering component for route: ${componentName}`, error);
           return h(Error404);
@@ -57,16 +66,26 @@ const currentComponent = (component: Component, route: RouteLocationNormalized) 
     wrapperMap.set(componentName, wrapper);
   }
 
-  // 添加组件数量限制
-  if (wrapperMap.size > 100) {
-    const firstKey = wrapperMap.keys().next().value;
-    if (firstKey) {
-      wrapperMap.delete(firstKey);
+  return wrapper;
+};
+
+watchEffect(() => {
+  const retainedPaths = new Set([
+    route.path,
+    ...visitedViews.value.map((view) => view.path),
+    ...cachedViews.value,
+  ]);
+
+  for (const path of wrapperMap.keys()) {
+    if (!retainedPaths.has(path)) {
+      wrapperMap.delete(path);
     }
   }
+});
 
-  return h(wrapper);
-};
+onBeforeUnmount(() => {
+  wrapperMap.clear();
+});
 
 const appMainHeight = computed(() => {
   if (settingsStore.showTagsView) {

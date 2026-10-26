@@ -107,8 +107,8 @@ export const useUserStore = defineStore("user", () => {
     permissionStore.resetRouter();
     // 清除字典缓存
     dictStore.clearDictionary();
-    // 清除标签视图
-    tagsViewStore.delAllViews();
+    // 清除当前会话的全部标签及 KeepAlive 缓存（包括 affix 标签）
+    tagsViewStore.resetViews();
 
     // 3. 清理 SSE 连接（Requirements: 8.5）
     // 衍生窗口调用为空操作，不报错（cleanupSse 内部判断 globalInstance 是否存在）

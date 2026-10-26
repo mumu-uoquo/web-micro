@@ -10,7 +10,7 @@
       <div class="tags-wrapper">
         <div
           v-for="tag in visitedViews"
-          :key="tag.fullPath"
+          :key="tag.path"
           class="tags-item"
           :class="{
             'is-active': tagsViewStore.isActive(tag),
@@ -18,7 +18,7 @@
           }"
           @click="
             router.push({
-              path: tag.fullPath,
+              path: tag.path,
               query: tag.query,
             })
           "
@@ -267,7 +267,7 @@ const extractAffixTags = (routes: RouteRecordRaw[], basePath = "/"): TagView[] =
           title: route.meta.title || "no-name",
           icon: route.meta.icon,
           affix: true,
-          keepAlive: route.meta.keepAlive || false,
+          keepAlive: route.meta.keepAlive !== false,
         });
       }
 
@@ -317,7 +317,7 @@ const addCurrentTag = () => {
     fullPath: route.fullPath,
     icon: route.meta.icon,
     affix: route.meta.affix || false,
-    keepAlive: route.meta.keepAlive || false,
+    keepAlive: route.meta.keepAlive !== false,
     query: route.query,
   });
 };
@@ -334,7 +334,7 @@ const updateCurrentTag = () => {
         fullPath: route.fullPath,
         icon: route.meta?.icon,
         affix: route.meta?.affix || false,
-        keepAlive: route.meta?.keepAlive || false,
+        keepAlive: route.meta?.keepAlive !== false,
         query: route.query,
       });
     }
@@ -356,6 +356,8 @@ const openContextMenu = (tag: TagView, event: MouseEvent) => {
 
 const closeContextMenu = () => {
   contextMenu.visible = false;
+  // 菜单关闭后不再持有可能已经从 visitedViews 移除的 TagView。
+  selectedTag.value = null;
 };
 
 // 鼠标滚轮横向滚动（标签栏超出可视区时生效）

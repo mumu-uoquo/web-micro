@@ -2,9 +2,9 @@
 
 import { createMemoryHistory, createRouter, createWebHashHistory, type Router } from "vue-router";
 import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
+import { HOST_ROUTE_PREFIX } from "./config";
 import { businessRoutes } from "./routes";
 
-const HOST_ROUTE_PREFIX = "/platform";
 let stopHostRouteBridge: (() => void) | null = null;
 
 /** 将宿主 /#/platform/** 地址转换为子应用内部地址。 */
