@@ -71,6 +71,16 @@ export const MICRO_APP_CONFIGS = [
     activeRule: "/platform",
     props: getMicroAppProps,
   },
+  {
+    name: "app-operate",
+    entry: {
+      development: "http://localhost:7102",
+      production: "/operate/",
+    },
+    container: "#sub-app-container",
+    activeRule: "/operate",
+    props: getMicroAppProps,
+  },
 ] as const satisfies readonly MicroAppConfig[];
 
 export type MicroAppName = (typeof MICRO_APP_CONFIGS)[number]["name"];
