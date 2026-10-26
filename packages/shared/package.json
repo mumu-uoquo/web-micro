@@ -23,16 +23,15 @@
     "test:watch": "vitest"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "registry": "https://mvn.uoquo.com/repository/npm-hosted/"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
-    "axios": "^1.13.6",
     "crypto-js": "^4.2.0",
     "jsencrypt": "^3.5.4"
   },
   "devDependencies": {
+    "axios": "^1.13.6",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^12.3.0",
@@ -47,6 +46,7 @@
     "vue-router": "^4.5.0"
   },
   "peerDependencies": {
+    "axios": "^1.13.6",
     "vue-router": "^4.x || ^5.x"
   },
   "peerDependenciesMeta": {
