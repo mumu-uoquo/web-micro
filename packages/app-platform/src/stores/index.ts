@@ -247,12 +247,16 @@ export const useDictStore = defineStore("dict", () => {
     const code = "all";
     if (!requestQueue[code]) {
       dictionary.value = {};
-      SystemAPI.listDictionarySimpleByAll().then((data) => {
-        data.forEach((item) => {
-          dictionary.value[item.dicCode] = item.children || [];
+      // 记录请求 Promise，使并发调用方都能等到数据加载完成
+      requestQueue[code] = SystemAPI.listDictionarySimpleByAll()
+        .then((data) => {
+          data.forEach((item) => {
+            dictionary.value[item.dicCode] = item.children || [];
+          });
+        })
+        .finally(() => {
+          Reflect.deleteProperty(requestQueue, code);
         });
-        Reflect.deleteProperty(requestQueue, code);
-      });
     }
     await requestQueue[code];
   };
@@ -260,10 +264,14 @@ export const useDictStore = defineStore("dict", () => {
   const loadDictionaryByCode = async (code: string) => {
     if (dictionary.value[code]) return;
     if (!requestQueue[code]) {
-      SystemAPI.listDictionarySimpleByCode({ itemCode: code }).then((data) => {
-        dictionary.value[code] = data;
-        Reflect.deleteProperty(requestQueue, code);
-      });
+      // 记录请求 Promise，使调用方 await 后一定能读到字典数据
+      requestQueue[code] = SystemAPI.listDictionarySimpleByCode({ itemCode: code })
+        .then((data) => {
+          dictionary.value[code] = data;
+        })
+        .finally(() => {
+          Reflect.deleteProperty(requestQueue, code);
+        });
     }
     await requestQueue[code];
   };
