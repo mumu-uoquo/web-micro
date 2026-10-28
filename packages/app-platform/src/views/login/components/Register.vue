@@ -160,6 +160,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElForm } from "element-plus";
 import { User, Lock, Loading, Iphone, Avatar, ChatDotRound } from "@element-plus/icons-vue";
 import { useSettingsStore } from "@/stores";
 import { encrypt } from "@/utils";

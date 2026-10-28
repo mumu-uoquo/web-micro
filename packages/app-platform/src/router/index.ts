@@ -2,6 +2,7 @@
 
 import { createMemoryHistory, createRouter, createWebHashHistory, type Router } from "vue-router";
 import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
+import { AuthStorage } from "@/utils";
 import { HOST_ROUTE_PREFIX } from "./config";
 import { businessRoutes } from "./routes";
 
@@ -39,10 +40,14 @@ export function createAppRouter(_props?: unknown): Router {
     history.replace(getChildRouteFromHostHash() ?? "/");
   }
 
+  // 登录页仅在开发调试（独立运行）时提供；生产环境统一使用主应用登录，
+  // 判断 import.meta.env.DEV 可让生产构建摇掉登录页相关代码。
+  const standaloneLoginEnabled = import.meta.env.DEV && !runningInQiankun;
+
   const router = createRouter({
     history,
     routes: [
-      ...(runningInQiankun
+      ...(!standaloneLoginEnabled
         ? []
         : [
             {
@@ -61,10 +66,15 @@ export function createAppRouter(_props?: unknown): Router {
     ],
   });
 
-  router.beforeEach(async (to) => {
-    if (to.meta?.noAuth === true || to.path.includes("/visitor/")) return true;
-    return true;
-  });
+  // 开发调试：未登录访问业务页面时跳转到子应用登录页，并记录登录后要回到的地址
+  // 生产环境（qiankun）的登录态校验由主应用负责
+  if (standaloneLoginEnabled) {
+    router.beforeEach((to) => {
+      if (to.meta?.noAuth === true || to.path.includes("/visitor/")) return true;
+      if (AuthStorage.getAccessToken()) return true;
+      return { path: "/login", query: { redirect: to.fullPath } };
+    });
+  }
 
   if (runningInQiankun) {
     disposeAppRouter();

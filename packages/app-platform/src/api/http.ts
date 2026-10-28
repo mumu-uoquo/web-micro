@@ -4,7 +4,9 @@ import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 
 /**
  * app-platform 不直接刷新 Token。
- * 会话失效时，独立运行跳转子应用登录页；qiankun 模式跳转主应用登录页。
+ * 会话失效时：
+ * - qiankun（生产）模式：跳转主应用登录页
+ * - 独立运行（开发调试）：跳转子应用自带的登录页（hash 路由 #/login）
  */
 function redirectToLogin(): never {
   AuthStorage.clearTokens();

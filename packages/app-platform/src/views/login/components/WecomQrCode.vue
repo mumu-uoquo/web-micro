@@ -192,7 +192,7 @@ async function loadQrCode() {
     const cfg = await AuthAPI.credentialConfig({ scene: SCENE });
     currentState.value = cfg.state || "";
     // 由后端 renderType 决定渲染方式，未返回时默认 wxjs（向后兼容）
-    renderType.value = cfg.renderType ?? "wxjs";
+    renderType.value = (cfg.renderType as "wxjs" | "oauth" | undefined) ?? "wxjs";
 
     if (renderType.value === "oauth") {
       await renderOAuthQrCode(cfg);

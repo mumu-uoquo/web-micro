@@ -244,8 +244,6 @@ if (!qiankunWindow.__POWERED_BY_QIANKUN__ && import.meta.env.PROD) {
   } else {
     // ── 普通 Dev_Mode 流程 ───────────────────────────────────────────────
     // Requirements: 6.3, 6.4
-    const existingToken = AuthStorage.getAccessToken();
-
     const router = createAppRouter({} as QiankunProps);
     const devApp = createApp(AppComponent);
     devApp.use(router);
@@ -255,13 +253,7 @@ if (!qiankunWindow.__POWERED_BY_QIANKUN__ && import.meta.env.PROD) {
     registerGlobalIcons(devApp);
     setupPermissionDirective(devApp, { permissions: [] });
     devApp.mount("#app");
-
-    if (!existingToken) {
-      // Token 为空：挂载后跳转至登录页
-      router.isReady().then(() => {
-        router.push("/login");
-      });
-    }
-    // Token 非空时 router 默认 '/' → '/dashboard/index'，直接进入业务首页
+    // 未登录时由路由守卫（router/index.ts）统一跳转到 /login?redirect=原地址，
+    // 登录成功后回到原页面；已登录时默认 '/' → '/dashboard/index'
   }
 }

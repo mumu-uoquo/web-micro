@@ -91,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElForm } from "element-plus";
 import { Iphone, ChatDotRound, Loading } from "@element-plus/icons-vue";
 import { useUserStore, useSettingsStore } from "@/stores";
 import { AuthStorage, encrypt } from "@/utils";

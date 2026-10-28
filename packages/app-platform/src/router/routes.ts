@@ -1,17 +1,35 @@
 import type { RouteRecordRaw } from "vue-router";
 
 interface StandaloneMenuOptions {
+  /** 菜单分组名称（支持 i18n key：route.xxx） */
   group?: string;
   groupOrder?: number;
   order?: number;
+  /** 菜单图标：el-icon-xxx 为 Element Plus 图标，其余为 src/assets/icons 下的 SVG 图标名 */
+  icon?: string;
+  /** 分组图标；不传时按分组名从 GROUP_ICONS 中取 */
+  groupIcon?: string;
 }
 
-/** 独立运行菜单元数据；未配置该元数据的路由不会出现在菜单中。 */
+/** 各菜单分组的默认图标（SVG 图标名，对应 src/assets/icons） */
+const GROUP_ICONS: Record<string, string> = {
+  账户管理: "user-user",
+  日志中心: "document",
+  消息中心: "message",
+  系统管理: "setting",
+};
+
+/**
+ * 独立运行菜单元数据；未配置该元数据的路由不会出现在菜单中。
+ * title 支持 i18n key（以 route. 开头），由 translateRouteTitle 翻译。
+ */
 function standaloneMenu(title: string, options: StandaloneMenuOptions = {}) {
   return {
     standaloneMenu: true,
     title,
+    icon: options.icon,
     menuGroup: options.group,
+    menuGroupIcon: options.groupIcon ?? (options.group ? GROUP_ICONS[options.group] : undefined),
     menuGroupOrder: options.groupOrder ?? 0,
     menuOrder: options.order ?? 0,
   };
@@ -25,7 +43,7 @@ const dashboardRoutes: RouteRecordRaw[] = [
   {
     path: "/dashboard/index",
     component: () => import("@/views/dashboard/index.vue"),
-    meta: standaloneMenu("仪表盘", { groupOrder: 10 }),
+    meta: standaloneMenu("仪表盘", { groupOrder: 10, icon: "homepage" }),
   },
 ];
 
@@ -158,7 +176,7 @@ const systemRoutes: RouteRecordRaw[] = [
   {
     path: "/system/license/index",
     component: () => import("@/views/system/license/index.vue"),
-    meta: standaloneMenu("授权管理", { group: "系统管理", groupOrder: 50, order: 90 }),
+    meta: standaloneMenu("授权信息", { group: "系统管理", groupOrder: 50, order: 90 }),
   },
 ];
 

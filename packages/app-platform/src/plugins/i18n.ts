@@ -84,7 +84,8 @@ const i18n: I18n = createI18n({
   globalInjection: true,
 });
 
-configureRouteTitleTranslator((key) => i18n.global.t(key) as string);
+// I18n 泛型默认类型会让 global.t 成为不可调用的联合类型，这里显式收窄
+configureRouteTitleTranslator((key) => (i18n.global as unknown as { t: (k: string) => string }).t(key));
 
 /**
  * 全局注册 I18n，使用示例：

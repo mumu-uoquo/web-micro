@@ -71,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElForm } from "element-plus";
 import { User, Lock } from "@element-plus/icons-vue";
 import { useUserStore, useSettingsStore } from "@/stores";
 import { AuthStorage, encrypt } from "@/utils";
