@@ -668,6 +668,23 @@
               "sortIdx": 99,
               "description": "",
               "children": []
+            },
+            {
+              "id": "K7BN5YJY62CTKPNY",
+              "parentId": "K7BN5K2V524WDE5Y",
+              "moduleName": "授权管理",
+              "moduleCode": "system-license",
+              "moduleType": "005001",
+              "menuName": "授权管理",
+              "visible": true,
+              "icon": "el-icon-Key",
+              "path": "/system/license/index",
+              "url": "/system/license/index",
+              "params": null,
+              "popup": false,
+              "sortIdx": 100,
+              "description": "",
+              "children": []
             }
           ]
         }

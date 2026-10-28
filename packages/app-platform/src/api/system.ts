@@ -205,6 +205,15 @@ const SystemAPI = {
   },
 
   /**
+   * 获取授权详情
+   */
+  getLicenseInfo(config?: AxiosRequestConfig) {
+    return http.request<LicenseInfoDto>("post", `${USER_BASE_URL}/v1/system/license/info`, {
+      ...config,
+    });
+  },
+
+  /**
    * 获取机器码
    */
   getMachineCode(config?: AxiosRequestConfig) {
@@ -801,6 +810,26 @@ export interface IdParam {
 export interface LicenseImportParam {
   /** license内容 */
   license: string;
+}
+
+/**
+ * 授权详情
+ */
+export interface LicenseInfoDto {
+  /** 授权时间 */
+  authorizedTime?: string;
+  /** 过期时间，NULL 表示永久有效 */
+  expireTime?: string;
+  /** 拥有人 */
+  owner?: string;
+  /** 序列号 */
+  serialNo?: string;
+  /** 系统版本 */
+  systemVersion?: string;
+  /** 授权结束日期，NULL 表示永久有效 */
+  validExpire?: string;
+  /** 授权开始日期 */
+  validFrom?: string;
 }
 
 /**
