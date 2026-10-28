@@ -157,7 +157,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" align="center" fixed="right">
+        <el-table-column label="操作" width="190" align="center" fixed="right">
           <template #default="scope">
             <el-tooltip content="编辑">
               <el-button
@@ -187,6 +187,16 @@
                 :icon="Finished"
                 class="btn-color-purple"
                 @click="handleOpenAuthDialog(scope.row)"
+              />
+            </el-tooltip>
+            <el-tooltip content="推送配置">
+              <el-button
+                link
+                size="small"
+                type="primary"
+                :icon="Promotion"
+                :disabled="scope.row.isSystemTemplate"
+                @click="handleOpenPushDialog(scope.row)"
               />
             </el-tooltip>
             <el-popconfirm
@@ -239,6 +249,20 @@
     >
       <AppPermission :info-data="authInfoData" />
     </el-dialog>
+    <el-dialog
+      v-model="pushDialogVisible"
+      :title="`推送配置 - ${pushInfoData.appName || ''}`"
+      width="900px"
+      :close-on-click-modal="false"
+      draggable
+    >
+      <AppPushConfig
+        v-if="pushDialogVisible"
+        :app-id="pushInfoData.id"
+        @on-cancel="pushDialogVisible = false"
+        @on-saved="pushDialogVisible = false"
+      />
+    </el-dialog>
   </div>
 </template>
 
@@ -257,6 +281,7 @@ import {
   Operation,
   CopyDocument,
   Finished,
+  Promotion,
   WarnTriangleFilled,
 } from "@element-plus/icons-vue";
 import InstituteAPI, { InstituteListParam, InstituteInfoDto } from "@/api/institute";
@@ -270,6 +295,7 @@ import ModuleAPI, { ModuleInfoDto } from "@/api/module";
 import AppInfoAddForm from "./components/AppInfoAddForm.vue";
 import AppInfoEditForm from "./components/AppInfoEditForm.vue";
 import AppPermission from "./components/AppPermission.vue";
+import AppPushConfig from "./components/AppPushConfig.vue";
 import { useUserStore } from "@/stores";
 
 /* ***************************** 参数定义 ********************************* */
@@ -506,6 +532,17 @@ function handleOpenAuthDialog(row: AppTableItem) {
   }
   authInfoData.value = data;
   authDialogVisible.value = true;
+}
+
+const pushDialogVisible = ref<boolean>(false);
+const pushInfoData = ref<AppInfoDto>({ id: "" });
+
+/**
+ * 推送配置弹窗：展示
+ */
+function handleOpenPushDialog(row: AppTableItem) {
+  pushInfoData.value = { ...row };
+  pushDialogVisible.value = true;
 }
 
 /* ***************************** 其他操作 ********************************* */

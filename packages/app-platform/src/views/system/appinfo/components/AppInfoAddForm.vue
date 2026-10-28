@@ -9,6 +9,7 @@
     <el-steps :active="stepActive" align-center finish-status="success">
       <el-step title="基本信息" />
       <el-step title="访问授权" />
+      <el-step title="推送配置" />
     </el-steps>
     <div v-show="stepActive === 0">
       <el-form
@@ -73,6 +74,20 @@
             </template>
           </el-input>
         </el-form-item>
+        <el-form-item label="可信站点" prop="trustSite">
+          <el-input
+            v-model="infoFormData.trustSite"
+            clearable
+            placeholder="请输入域名或 IP，如 example.com 或 192.168.1.1"
+          />
+        </el-form-item>
+        <el-form-item label="可信IP" prop="trustIps">
+          <el-input
+            v-model="infoFormData.trustIps"
+            clearable
+            placeholder="多个 IP 请使用英文分号分隔"
+          />
+        </el-form-item>
         <el-form-item label="模板" prop="templateType">
           <el-switch
             v-model="infoFormData.templateType"
@@ -123,10 +138,15 @@
         </el-form-item>
       </el-form>
       <AppPermission
+        ref="appPermissionRef"
         :template-id="templateAppId"
         :info-data="authAppInfoData"
+        external-save
         @on-change="handleAuthSelect"
       />
+    </div>
+    <div v-show="stepActive === 2" class="mt-5">
+      <AppPushConfig ref="appPushConfigRef" :app-id="authAppInfoData.id" external-save />
     </div>
 
     <template #footer>
@@ -135,7 +155,16 @@
         <el-button type="primary" @click="handleInfoSubmit">提交并授权</el-button>
       </span>
       <span v-show="stepActive === 1">
-        <el-button @click="dialogVisible = false">关闭</el-button>
+        <el-button @click="handleSkipAuth">跳过授权</el-button>
+        <el-button type="primary" :loading="stepSubmitLoading" @click="handleAuthSubmit">
+          保存授权
+        </el-button>
+      </span>
+      <span v-show="stepActive === 2">
+        <el-button @click="dialogVisible = false">关 闭</el-button>
+        <el-button type="primary" :loading="stepSubmitLoading" @click="handlePushSubmit">
+          保存配置
+        </el-button>
       </span>
     </template>
   </el-dialog>
@@ -157,6 +186,8 @@ import SystemAPI, {
   AppPermissionCopyParam,
 } from "@/api/system";
 import AppPermission from "./AppPermission.vue";
+import AppPushConfig from "./AppPushConfig.vue";
+import { validateTrustIps, validateTrustSite } from "./appInfoValidators";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -170,6 +201,9 @@ const props = defineProps<{
 const dialogVisible = ref<boolean>(false);
 const dialogTitle = ref<string>("新增");
 const stepActive = ref<number>(0);
+const stepSubmitLoading = ref<boolean>(false);
+const appPermissionRef = ref<InstanceType<typeof AppPermission>>();
+const appPushConfigRef = ref<InstanceType<typeof AppPushConfig>>();
 
 /* ***************************** 表单信息 ********************************* */
 // 初始表单数据
@@ -180,6 +214,8 @@ const initialFormData = ref<AppInfoParam>({
   appName: "",
   appkey: "",
   secret: "",
+  trustSite: "",
+  trustIps: "",
   templateType: DictionaryEnum.TEMPLATE_TYPE_NONE,
 });
 const infoFormRef = ref(ElForm);
@@ -207,6 +243,8 @@ const infoFormRules = reactive<FormRules<AppInfoParam>>({
       trigger: "blur",
     },
   ],
+  trustSite: [{ validator: validateTrustSite, trigger: "blur" }],
+  trustIps: [{ validator: validateTrustIps, trigger: "blur" }],
 });
 
 /**
@@ -340,17 +378,52 @@ function handleAuthSelect(_appId: string, _parentIds?: string[], _resourceIds?: 
   }
 }
 
+/**
+ * 跳过授权，直接进入推送配置
+ */
+function handleSkipAuth(): void {
+  stepActive.value = 2;
+}
+
+/**
+ * 保存授权成功后进入推送配置
+ */
+async function handleAuthSubmit(): Promise<void> {
+  stepSubmitLoading.value = true;
+  try {
+    await appPermissionRef.value?.save();
+    stepActive.value = 2;
+  } finally {
+    stepSubmitLoading.value = false;
+  }
+}
+
+/**
+ * 保存推送配置成功后关闭弹窗
+ */
+async function handlePushSubmit(): Promise<void> {
+  stepSubmitLoading.value = true;
+  try {
+    const saved = await appPushConfigRef.value?.save();
+    if (saved) {
+      dialogVisible.value = false;
+    }
+  } finally {
+    stepSubmitLoading.value = false;
+  }
+}
+
 /* ***************************** 窗体操作 ********************************* */
 /**
  * 显示弹窗
  */
 const openDialog = async (_param: AppInfoDto) => {
-  dialogVisible.value = true;
-  templateDisable.value = false;
   templateAppName.value = "";
   templateAppId.value = "";
   stepActive.value = 0;
   dialogTitle.value = "新增";
+  templateDisable.value = false;
+  dialogVisible.value = true;
   // 默认填充自己所属机构
   instituteList.value = [props.defaultInstitute];
   infoFormData.value.instituteId = props.defaultInstitute.id;
@@ -363,6 +436,7 @@ function handleCloseDialog() {
   dialogVisible.value = false;
   infoFormRef.value.clearValidate();
   Object.assign(infoFormData.value, initialFormData.value);
+  authAppInfoData.value = { id: "" };
 }
 
 /* ***************************** 监听器等（需放在最后） ********************************* */

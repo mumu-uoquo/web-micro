@@ -40,7 +40,12 @@
     </el-tabs>
     <div class="button-wrapper">
       <div v-show="stepActive === '0'">
-        <el-button type="primary" :disabled="readOnly" @click="handleAuthInhertSubmit">
+        <el-button
+          v-if="!props.externalSave"
+          type="primary"
+          :disabled="readOnly"
+          @click="handleAuthInhertSubmit"
+        >
           保 存
         </el-button>
       </div>
@@ -73,6 +78,8 @@ const props = defineProps<{
   templateId?: string;
   // 当前APP信息
   infoData: AppInfoDto;
+  // 由父组件统一提供保存按钮
+  externalSave?: boolean;
 }>();
 
 const stepActive = ref<string>("0");
@@ -107,13 +114,21 @@ function loadInhertList(appId: string) {
 /**
  * 模板授权：保存
  */
-function handleAuthInhertSubmit() {
+async function handleAuthInhertSubmit(): Promise<void> {
   const param = { appId: currentAppId.value, parentIdList: appInherts.value } as AppInhertAddParam;
   // console.log("handleAuthInhertSubmit", param);
-  SystemAPI.addRelateInherit(param).then((_data) => {
-    ElMessage.success("保存成功");
-    emits("on-change", currentAppId.value, appInherts.value, []); // 触发自定义事件
-  });
+  await SystemAPI.addRelateInherit(param);
+  ElMessage.success("保存成功");
+  emits("on-change", currentAppId.value, appInherts.value, []); // 触发自定义事件
+}
+
+/**
+ * 模板授权：外部保存
+ */
+async function save(): Promise<void> {
+  if (!readOnly.value && appInherts.value.length > 0) {
+    await handleAuthInhertSubmit();
+  }
 }
 
 /* ***************************** 个性授权 ********************************* */
@@ -164,6 +179,10 @@ watchEffect(() => {
     // 加载关联的授权模板
     loadInhertList(currentAppId.value);
   }
+});
+
+defineExpose({
+  save,
 });
 </script>
 

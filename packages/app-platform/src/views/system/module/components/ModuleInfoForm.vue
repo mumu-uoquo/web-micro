@@ -109,11 +109,20 @@
       </el-form-item>
       <el-form-item v-if="isMenu" label="路由地址" prop="path">
         <el-input
+          v-model="formData.microApp"
+          placeholder="微前端前缀（可空）"
+          maxlength="20"
+          :validate-event="false"
+          clearable
+          style="width: 25%"
+        />
+        <el-input
           v-model="formData.path"
           placeholder="模块的路由地址"
           maxlength="100"
           show-word-limit
           clearable
+          style="width: calc(75% - 8px); margin-left: 8px"
         />
       </el-form-item>
       <el-form-item v-if="isMenu" label="链接地址" prop="url">
@@ -189,6 +198,7 @@ const initialFormData = ref<ModuleInfoParam>({
   sortIdx: 99,
   visible: true,
   icon: "el-icon-menu",
+  microApp: "",
   path: "",
   url: "",
   params: [],
@@ -215,6 +225,19 @@ const formRules = reactive<FormRules<ModuleInfoParam>>({
     },
   ],
   path: [
+    {
+      validator: (_rule, _value, callback) => {
+        const microApp = formData.value.microApp;
+        if (microApp && !/^\/[A-Za-z][A-Za-z0-9]{0,18}$/.test(microApp)) {
+          callback(
+            new Error("微前端名称须以 / 开头、字母起始，且只能包含字母或数字（20 字符以内）")
+          );
+          return;
+        }
+        callback();
+      },
+      trigger: "blur",
+    },
     {
       pattern: /^[a-zA-Z0-9\/]+$/, // eslint-disable-line
       message: "只能输入字母、数字、斜杠",

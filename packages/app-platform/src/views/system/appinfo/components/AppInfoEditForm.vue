@@ -51,6 +51,20 @@
           </template>
         </el-input>
       </el-form-item>
+      <el-form-item label="可信站点" prop="trustSite">
+        <el-input
+          v-model="infoFormData.trustSite"
+          clearable
+          placeholder="请输入域名或 IP，如 example.com 或 192.168.1.1"
+        />
+      </el-form-item>
+      <el-form-item label="可信IP" prop="trustIps">
+        <el-input
+          v-model="infoFormData.trustIps"
+          clearable
+          placeholder="多个 IP 请使用英文分号分隔"
+        />
+      </el-form-item>
       <el-form-item label="模板">
         <el-switch
           v-model="infoFormData.templateType"
@@ -82,6 +96,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { ModuleInfoDto } from "@/api/module";
 import SystemAPI, { AppInfoParam, AppInfoDto } from "@/api/system";
+import { validateTrustIps, validateTrustSite } from "./appInfoValidators";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -108,6 +123,8 @@ const initialFormData = ref<AppInfoEditParam>({
   appName: "",
   appkey: "",
   secret: "",
+  trustSite: "",
+  trustIps: "",
   templateType: DictionaryEnum.TEMPLATE_TYPE_NONE,
 });
 const infoFormRef = ref(ElForm);
@@ -124,6 +141,8 @@ const infoFormRules = reactive<FormRules<AppInfoEditParam>>({
       trigger: "blur",
     },
   ],
+  trustSite: [{ validator: validateTrustSite, trigger: "blur" }],
+  trustIps: [{ validator: validateTrustIps, trigger: "blur" }],
 });
 
 /**
