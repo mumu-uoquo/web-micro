@@ -169,6 +169,8 @@ import { useRouter } from "vue-router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
 import type { LoginMode } from "@/stores";
 import { AuthStorage } from "@/utils";
+import AuthAPI from "@/api/auth";
+import { cachePermissions, extractPermissionCodes } from "@/directives/permission";
 
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
@@ -204,6 +206,19 @@ const tenantEnabled = appConfig.tenantEnabled;
  * token 已由登录组件 AccountForm 等通过 setUserInfo → AuthStorage.setTokens 保存
  */
 async function handleLoginSuccess() {
+  // 告知后端当前操作所使用的角色（与 main-app 一致），否则后续部分接口会报错
+  // 失败时错误已由 http 统一提示，此处终止跳转，留在登录页
+  const currentRoleId = userStore.userInfo.currentRoleId;
+  if (currentRoleId) {
+    try {
+      const modules = await AuthAPI.permission({ id: currentRoleId });
+      // 缓存角色的按钮权限码，供 v-hasPerm / hasAuth 使用（刷新页面后可从本地恢复）
+      cachePermissions(extractPermissionCodes(modules), currentRoleId);
+    } catch (error) {
+      console.error("[login] 设置当前角色失败：", error);
+      return;
+    }
+  }
   // 需要在路由跳转前加载字典数据，否则会出现字典数据未加载完成导致页面渲染异常
   // 并行执行
   // await Promise.all([userStore.getUserInfo(), dictStore.loadDictionary(null)]);

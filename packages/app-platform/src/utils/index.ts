@@ -1,5 +1,6 @@
 export {
   AuthStorage,
+  ROOT_ROLE_ID,
   STORAGE_KEYS,
   assert,
   createHttpInstance,

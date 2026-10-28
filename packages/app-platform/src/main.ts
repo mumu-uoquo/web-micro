@@ -24,7 +24,12 @@ import { syncCachedViews } from "./router/cache";
 import { pinia } from "./stores";
 import { setupI18n } from "./plugins/i18n";
 import ElementPlus from "element-plus";
-import { setupPermissionDirective, updatePermissions } from "./directives/permission";
+import * as ElementPlusIcons from "@element-plus/icons-vue";
+import {
+  setupPermissionDirective,
+  updatePermissions,
+  updateCurrentRole,
+} from "./directives/permission";
 import { AuthStorage, consumeTabTicket } from "@/utils";
 import { qiankunWindow, renderWithQiankun } from "vite-plugin-qiankun/dist/helper";
 
@@ -61,6 +66,14 @@ export interface QiankunProps {
   setGlobalState: (state: Partial<GlobalState>) => void;
 }
 
+/**
+ * 全局注册 Element Plus 图标（与 main-app 保持一致），
+ * 否则页面中直接使用 <Edit />、<Delete /> 等图标组件会无法解析
+ */
+function registerGlobalIcons(target: VueApp): void {
+  Object.entries(ElementPlusIcons).forEach(([name, comp]) => target.component(name, comp));
+}
+
 // ── 模块级状态 ────────────────────────────────────────────────────────────────
 let app: VueApp | null = null;
 let unsubscribeGlobalState: (() => void) | null = null;
@@ -73,6 +86,9 @@ let mountedContainer: HTMLElement | null = null;
 function syncGlobalState(state: GlobalState): void {
   if (Array.isArray(state.permissions)) {
     updatePermissions(state.permissions);
+  }
+  if (state.userInfo && typeof state.userInfo === "object") {
+    updateCurrentRole(state.userInfo.currentRoleId);
   }
   if (Array.isArray(state.cachedViews)) {
     syncCachedViews(state.cachedViews);
@@ -116,6 +132,7 @@ export async function mount(props: QiankunProps): Promise<void> {
   app.use(pinia);
   setupI18n(app);
   app.use(ElementPlus);
+  registerGlobalIcons(app);
   setupPermissionDirective(app, props);
 
   // Memory History 已由路由工厂写入宿主对应地址，等待首次导航完成后再渲染。
@@ -216,6 +233,7 @@ if (!qiankunWindow.__POWERED_BY_QIANKUN__ && import.meta.env.PROD) {
       devApp.use(pinia);
       setupI18n(devApp);
       devApp.use(ElementPlus);
+      registerGlobalIcons(devApp);
       setupPermissionDirective(devApp, { permissions: [] });
       devApp.mount("#app");
     } else {
@@ -234,6 +252,7 @@ if (!qiankunWindow.__POWERED_BY_QIANKUN__ && import.meta.env.PROD) {
     devApp.use(pinia);
     setupI18n(devApp);
     devApp.use(ElementPlus);
+    registerGlobalIcons(devApp);
     setupPermissionDirective(devApp, { permissions: [] });
     devApp.mount("#app");
 

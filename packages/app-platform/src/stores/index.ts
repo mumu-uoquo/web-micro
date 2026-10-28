@@ -17,6 +17,7 @@ import { ref, computed } from "vue";
 import { createPinia, defineStore } from "pinia";
 import { useStorage } from "@vueuse/core";
 import { AuthStorage, configureCodeResolvers, decrypt, STORAGE_KEYS } from "@/utils";
+import { clearPermissions } from "@/directives/permission";
 import en from "element-plus/es/locale/lang/en";
 import zhCn from "element-plus/es/locale/lang/zh-cn";
 import AuthAPI, { type UserAuthDto, type TokenDto } from "@/api/auth";
@@ -194,6 +195,7 @@ export const useUserStore = defineStore("user", () => {
    */
   function resetAllState() {
     AuthStorage.clearTokens();
+    clearPermissions();
     userInfo.value = { id: "", instituteId: "" } as UserAuthDto;
   }
 

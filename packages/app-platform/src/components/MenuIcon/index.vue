@@ -7,6 +7,9 @@
 </template>
 
 <script setup lang="ts">
+// 模板中使用了 resolveComponent，需显式导入（app-platform 未开启 AutoImport 的 vueTemplate）
+import { computed, resolveComponent } from "vue";
+
 defineOptions({ name: "MenuIcon" });
 
 const props = defineProps({
