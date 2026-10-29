@@ -47,7 +47,10 @@
             </el-form-item>
             <el-form-item label="路由地址" prop="path" :style="{ width: '50%' }">
               <el-input
-                :model-value="(currentModuleInfo.microApp || '') + (currentModuleInfo.path || '')"
+                :model-value="
+                  (currentModuleInfo.microApp ? '/' + currentModuleInfo.microApp : '') +
+                  (currentModuleInfo.path || '')
+                "
               />
             </el-form-item>
             <el-form-item label="链接地址" prop="url" :style="{ width: '50%' }">

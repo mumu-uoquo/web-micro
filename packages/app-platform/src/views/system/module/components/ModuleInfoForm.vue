@@ -228,10 +228,8 @@ const formRules = reactive<FormRules<ModuleInfoParam>>({
     {
       validator: (_rule, _value, callback) => {
         const microApp = formData.value.microApp;
-        if (microApp && !/^\/[A-Za-z][A-Za-z0-9]{0,18}$/.test(microApp)) {
-          callback(
-            new Error("微前端名称须以 / 开头、字母起始，且只能包含字母或数字（20 字符以内）")
-          );
+        if (microApp && !/^[A-Za-z0-9_-]+$/.test(microApp)) {
+          callback(new Error("微前端前缀只能包含字母、数字、下划线和中横线"));
           return;
         }
         callback();
@@ -295,9 +293,17 @@ function handleParentChange(parentId: any) {
     if (parentInfo && parentInfo.parentId) {
       prependCode.value = parentInfo.moduleCode + "-";
     }
+    // 新增时，微前端前缀默认同父级
+    if (!formData.value.id) {
+      formData.value.microApp = parentInfo?.microApp || "";
+    }
   } else {
     // 根节点只能是菜单
     formData.value.moduleType = DictionaryEnum.MODULE_TYPE_MENU;
+    // 新增时清除父级后，不再沿用父级的微前端前缀
+    if (!formData.value.id) {
+      formData.value.microApp = "";
+    }
   }
 }
 
