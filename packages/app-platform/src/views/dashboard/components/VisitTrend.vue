@@ -213,6 +213,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
+  // 释放 ECharts 实例，避免缓存页被淘汰后图表持有的 DOM/画布残留
+  chart.value?.dispose();
+  chart.value = null;
 });
 
 onActivated(() => {

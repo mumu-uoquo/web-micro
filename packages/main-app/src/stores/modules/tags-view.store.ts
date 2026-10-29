@@ -1,8 +1,10 @@
 import { ref, watch } from "vue";
 import { defineStore } from "pinia";
+import { ElMessage } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
 import { setRetainedMicroAppRoutePaths } from "@/micro/config";
 import { getGlobalActions } from "@/micro/global-state";
+import { appConfig } from "@/settings";
 
 export const useTagsViewStore = defineStore("tagsView", () => {
   const visitedViews = ref<TagView[]>([]);
@@ -128,6 +130,24 @@ export const useTagsViewStore = defineStore("tagsView", () => {
   function addView(view: TagView) {
     addVisitedView(view);
     addCachedView(view);
+    trimVisitedViews(view);
+  }
+
+  /**
+   * 限制标签页数量：超过上限时，按打开顺序关闭最早的非固定标签（当前标签除外），
+   * 同时释放其 KeepAlive 缓存，避免缓存的页面实例无限增长。
+   */
+  function trimVisitedViews(current: TagView) {
+    const max = appConfig.maxTabs;
+    let normalTabs = visitedViews.value.filter((v) => !v.affix);
+    while (normalTabs.length > max) {
+      const victim = normalTabs.find((v) => v.path !== current.path);
+      if (!victim) break;
+      delVisitedView(victim);
+      delCachedView(victim);
+      normalTabs = normalTabs.filter((v) => v !== victim);
+      ElMessage.warning(`标签页已超过 ${max} 个，已自动关闭最早打开的「${victim.title}」`);
+    }
   }
 
   function delView(view: TagView) {

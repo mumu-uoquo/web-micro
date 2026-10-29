@@ -25,6 +25,10 @@ export const appConfig = {
 
   // 功能开关
   tenantEnabled: env.VITE_APP_TENANT_ENABLED === "true",
+
+  // 可同时打开的标签页上限（不含固定标签）。每个标签对应一个被 KeepAlive 缓存的页面实例，
+  // 数量不设上限会导致内存持续增长；超出时自动关闭最早打开的标签。可用 VITE_APP_MAX_TABS 覆盖。
+  maxTabs: Number(env.VITE_APP_MAX_TABS) > 0 ? Number(env.VITE_APP_MAX_TABS) : 15,
 } as const;
 
 // ============================================
