@@ -10,10 +10,11 @@
         </el-link>
       </div>
       <div class="headline mb-2.5 text-xl font-bold text-[#222]">抱歉，您访问的页面不存在</div>
-      <div class="info text-gray mb-4 text-[0.8125rem]">
+      <div class="info text-gray text-[0.8125rem]" :class="isDev ? 'mb-4' : 'mb-7'">
         请确认您输入的网址是否正确，或者点击下方按钮返回首页
       </div>
-      <div class="detail mb-4 text-[0.8125rem]">
+      <!-- 路由排查信息仅开发模式显示，避免生产环境暴露路由与目录结构 -->
+      <div v-if="isDev" class="detail mb-4 text-[0.8125rem]">
         <div>子应用：{{ APP_NAME }}</div>
         <div>子应用内路径：{{ childPath }}</div>
         <div v-if="hostHash">宿主地址：{{ hostHash }}</div>
@@ -37,6 +38,8 @@ import { HOST_ROUTE_PREFIX } from "@/router/config";
 defineOptions({ name: "Page404" });
 
 const APP_NAME = "app-platform";
+// 仅开发模式（vite serve）展示路由排查信息
+const isDev = import.meta.env.DEV;
 const route = useRoute();
 const router = useRouter();
 const back = () => router.push("/");
@@ -58,6 +61,7 @@ const viewFile = computed(() => {
 watch(
   () => route.fullPath,
   () => {
+    if (!isDev) return;
     console.warn(
       `[${APP_NAME}] 路由未注册: ${route.fullPath}，约定页面文件: ${viewFile.value}。` +
         "请核对模块管理中的路由配置与 src/router/routes.ts。"
