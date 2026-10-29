@@ -188,6 +188,22 @@ export const usePermissionStore = defineStore("permission", () => {
 });
 
 /**
+ * 菜单节点是否配置了 path
+ */
+function hasRoutablePath(item: ModuleTreeDto): boolean {
+  return DictionaryEnum.MODULE_TYPE_MENU == item.moduleType && !!item.path && item.path.length > 0;
+}
+
+/**
+ * 子孙节点中是否存在带 path 的菜单
+ */
+function hasRoutableDescendant(children?: ModuleTreeDto[]): boolean {
+  return (children || []).some(
+    (child) => hasRoutablePath(child) || hasRoutableDescendant(child.children)
+  );
+}
+
+/**
  * 筛选菜单
  */
 function parseMenuTree(
@@ -205,12 +221,14 @@ function parseMenuTree(
       return DictionaryEnum.MODULE_TYPE_MENU == item.moduleType;
     })
     .filter((item: ModuleTreeDto) => {
-      // 菜单一定要有URL，不然后续的map方法中会报错
-      return item.path && item.path.length > 0;
+      // 菜单一定要有URL，不然后续的map方法中会报错；
+      // 仅作分组的目录节点允许 path 为空，但其下必须有可用的子菜单
+      return hasRoutablePath(item) || hasRoutableDescendant(item.children);
     })
     .map((item: ModuleTreeDto) => {
       const microApp = resolveMicroAppName(item.microApp || inheritedMicroApp);
-      const microPath = item.path as string;
+      // 目录节点 path 为空时，用全局唯一的 moduleCode 生成宿主路径
+      const microPath = hasRoutablePath(item) ? (item.path as string) : `/${item.moduleCode}`;
       // 补全 target 和 fullscreen 默认值
       const nodeTarget: "_self" | "_blank" = (item as any).target === "_blank" ? "_blank" : "_self";
       const nodeFullscreen: boolean = (item as any).fullscreen === true;
@@ -277,7 +295,16 @@ function parseMenuTree(
       const children: RouteRecordRaw[] = parseMenuTree(item.id, item.children || [], microApp);
       if (children.length > 0) {
         info.children = children;
-        info.redirect = children[0].path;
+        if (hasRoutablePath(item)) {
+          info.redirect = children[0].path;
+        } else {
+          // path 为空的目录节点：默认跳转第一个可见的子菜单；子菜单全部隐藏时，该目录也不显示
+          const firstShowing = children.find((child) => !child.meta?.hidden);
+          info.redirect = (firstShowing ?? children[0]).path;
+          if (!firstShowing) {
+            info.meta!.hidden = true;
+          }
+        }
       }
       return info;
     });

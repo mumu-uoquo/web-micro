@@ -112,32 +112,8 @@ const useMenuColors = computed(
     settingsStore.sidebarColorScheme === SidebarColor.CLASSIC_BLUE
 );
 
-// 顶部菜单项（处理单子菜单显示优化）
-const topMenuItems = computed(() => {
-  const routes = permissionStore.routes.filter((item) => !item.meta?.hidden);
-
-  return routes.map((route) => {
-    // alwaysShow 或无子菜单，直接返回
-    if (route.meta?.alwaysShow || !route.children?.length) return route;
-
-    // 过滤可见子菜单
-    const visibleChildren = route.children.filter((child) => !child.meta?.hidden);
-
-    // 仅一个可见子菜单时，显示子菜单信息
-    if (visibleChildren.length === 1) {
-      const child = visibleChildren[0];
-      return {
-        ...route,
-        meta: {
-          ...route.meta,
-          title: child.meta?.title || route.meta?.title,
-          icon: child.meta?.icon || route.meta?.icon,
-        },
-      };
-    }
-    return route;
-  });
-});
+// 顶部菜单项（保持与后台配置一致的层级，不做单子菜单上提）
+const topMenuItems = computed(() => permissionStore.routes.filter((item) => !item.meta?.hidden));
 
 // 左侧菜单激活路径
 const activeSideMenuPath = computed(() => {

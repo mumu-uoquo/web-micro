@@ -1,39 +1,25 @@
 <template>
   <div v-if="!item.meta || !item.meta.hidden">
-    <!--【叶子节点】显示叶子节点或唯一子节点且父节点未配置始终显示 -->
-    <template
-      v-if="
-        // 未配置始终显示，使用唯一子节点替换父节点显示为叶子节点
-        (hasOneShowingChild(item.children, item) &&
-          !item.meta?.alwaysShow &&
-          (!onlyOneChild.children || onlyOneChild.noShowingChildren)) ||
-        // 即使配置了始终显示，但无子节点，也显示为叶子节点
-        (item.meta?.alwaysShow && !item.children)
-      "
-    >
+    <!--【叶子节点】没有可见子菜单时，显示节点自身 -->
+    <template v-if="!hasShowingChild">
       <AppLink
-        v-if="onlyOneChild.meta"
+        v-if="item.meta"
         :to="{
-          path: resolvePath(onlyOneChild.path),
-          query: onlyOneChild.meta.querys,
-          params: onlyOneChild.meta.params,
+          path: basePath,
+          query: item.meta.querys,
+          params: item.meta.params,
         }"
       >
-        <el-menu-item
-          :index="resolvePath(onlyOneChild.path)"
-          :class="{ 'submenu-title-noDropdown': !isNest }"
-        >
-          <template v-if="onlyOneChild.meta">
-            <MenuIcon :icon="onlyOneChild.meta.icon || item.meta?.icon" />
-            <span v-if="onlyOneChild.meta.title" class="ml-1">
-              {{ translateRouteTitle(onlyOneChild.meta.title) }}
-            </span>
-          </template>
+        <el-menu-item :index="basePath" :class="{ 'submenu-title-noDropdown': !isNest }">
+          <MenuIcon :icon="item.meta.icon" />
+          <span v-if="item.meta.title" class="ml-1">
+            {{ translateRouteTitle(item.meta.title) }}
+          </span>
         </el-menu-item>
       </AppLink>
     </template>
 
-    <!--【非叶子节点】显示含多个子节点的父菜单，或始终显示的单子节点 -->
+    <!--【非叶子节点】只要有可见子菜单就显示为父菜单，不论子菜单数量，保持层级与后台配置一致 -->
     <el-sub-menu v-else :index="resolvePath(item.path)" :data-path="item.path" teleported>
       <template #title>
         <template v-if="item.meta">
@@ -115,39 +101,8 @@ const props = defineProps({
   },
 });
 
-// 可见的唯一子节点
-const onlyOneChild = ref();
-
-/**
- * 检查是否仅有一个可见子节点
- *
- * @param children 子路由数组
- * @param parent 父级路由
- * @returns 是否仅有一个可见子节点
- */
-function hasOneShowingChild(children: RouteRecordRaw[] = [], parent: RouteRecordRaw) {
-  // 过滤出可见子节点
-  const showingChildren = children.filter((route: RouteRecordRaw) => {
-    if (!route.meta?.hidden) {
-      onlyOneChild.value = route;
-      return true;
-    }
-    return false;
-  });
-
-  // 仅有一个节点
-  if (showingChildren.length === 1) {
-    return true;
-  }
-
-  // 无子节点
-  if (showingChildren.length === 0) {
-    // 父节点设置为唯一显示节点，并标记为无子节点
-    onlyOneChild.value = { ...parent, path: "", noShowingChildren: true };
-    return true;
-  }
-  return false;
-}
+// 是否存在可见子节点
+const hasShowingChild = computed(() => (props.item.children ?? []).some((c) => !c.meta?.hidden));
 
 /**
  * 获取完整路径，适配外部链接
