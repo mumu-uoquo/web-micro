@@ -102,11 +102,33 @@ export function resolveMicroAppEntry(config: MicroAppConfig): string {
   return import.meta.env.DEV ? config.entry.development : config.entry.production;
 }
 
-/** 将字符串 activeRule 转换为适用于主应用 Hash Router 的 qiankun 激活函数。 */
+/** 最近一次由地址栏命中的子应用 activeRule。 */
+let lastShownActiveRule: string | undefined;
+
+/**
+ * 将字符串 activeRule 转换为适用于主应用 Hash Router 的 qiankun 激活函数。
+ *
+ * 所有子应用共用同一个挂载容器，同一时刻只能有一个子应用处于激活状态，
+ * 否则后挂载的应用会清空容器，已挂载的另一个应用无法再显示。因此：
+ * - 地址栏属于某个子应用时，只激活该子应用；
+ * - 地址栏是主应用自身页面（如欢迎页、个人中心）时，仅保留最近展示的那个子应用，
+ *   且它仍有标签页时才保留，以便切回时恢复页面状态。
+ */
 export function createHashActiveRule(activeRule: string): (location: Location) => boolean {
-  return (location) =>
-    matchesActiveRule(location.hash.slice(1), activeRule) ||
-    retainedMicroAppRoutePaths.some((path) => matchesActiveRule(path, activeRule));
+  return (location) => {
+    const hashPath = location.hash.slice(1);
+    const hashApp = MICRO_APP_CONFIGS.find((config) =>
+      matchesActiveRule(hashPath, config.activeRule)
+    );
+    if (hashApp) {
+      lastShownActiveRule = hashApp.activeRule;
+      return hashApp.activeRule === activeRule;
+    }
+    return (
+      lastShownActiveRule === activeRule &&
+      retainedMicroAppRoutePaths.some((path) => matchesActiveRule(path, activeRule))
+    );
+  };
 }
 
 /** 将后端应用名、activeRule 名称统一成注册配置中的应用名。 */

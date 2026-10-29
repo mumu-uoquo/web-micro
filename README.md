@@ -388,6 +388,15 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # app-operate 子应用反代（每新增一个子应用，都需要增加对应的 location）
+    location ^~ /operate/ {
+        proxy_pass ${OPERATE_APP_ORIGIN}/;   # app-operate 服务地址（替换为实际地址）
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # 主应用静态文件（history 模式回退）
     location / {
         try_files $uri $uri/ /index.html;
@@ -440,8 +449,8 @@ server {
 1. 执行 `pnpm run build:all` 完成全量构建。
 2. 将 `packages/main-app/dist/` 上传至主应用服务器的静态文件目录。
 3. 将 `packages/app-platform/dist/` 上传至子应用服务器的静态文件目录。
-4. 根据 nginx 模板配置并启动 nginx，将 `${SUB_APP_ORIGIN}` 替换为子应用的实际服务地址（如 `http://127.0.0.1:7101`）。
-5. 验证：访问主域名，登录后确认 `/platform/` 路径下的业务页面正常加载。
+4. 根据 nginx 模板配置并启动 nginx，将 `${SUB_APP_ORIGIN}` 替换为 app-platform 的实际服务地址（如 `http://127.0.0.1:7101`），将 `${OPERATE_APP_ORIGIN}` 替换为 app-operate 的实际服务地址（如 `http://127.0.0.1:7102`）。
+5. 验证：访问主域名，登录后确认 `/platform/`、`/operate/` 路径下的业务页面均正常加载。可在浏览器直接访问 `/operate/`，应返回 app-operate 的 index.html 而不是主应用页面。
 
 ### CI/CD 参考
 

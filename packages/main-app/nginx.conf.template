@@ -14,6 +14,16 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # app-operate 子应用反向代理：路径前缀须与 MICRO_APP_CONFIGS 中的 activeRule/production entry 一致。
+    # 缺少该 location 时 /operate/ 会回落到主应用 index.html，导致子应用加载失败。
+    location ^~ /operate/ {
+        proxy_pass ${OPERATE_APP_ORIGIN}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # Main_App static files with history-mode fallback
     location / {
         try_files $uri $uri/ /index.html;
