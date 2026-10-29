@@ -37,12 +37,10 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores";
 import type { UserAuthDto, UserRoleDto } from "@/api/auth";
 
 const userStore = useUserStore();
-const router = useRouter();
 
 // 当前用户
 const userInfo = ref<UserAuthDto>({ id: "", instituteId: "" });
@@ -71,7 +69,7 @@ function handleRoleChangeClick(roleId: string) {
       message: `成功切换到[ ${currentRoleName.value} ]角色`,
       type: "success",
     });
-    router.push({ path: "/", replace: true });
+    // changeRole 内部已跳转到固定的欢迎页，这里不再跳转 "/"（"/" 会重定向到新角色的第一个菜单）
   });
 }
 

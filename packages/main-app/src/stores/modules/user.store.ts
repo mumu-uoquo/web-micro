@@ -136,6 +136,9 @@ export const useUserStore = defineStore("user", () => {
    * 切换角色
    */
   async function changeRole(roleId: string): Promise<RouteRecordRaw[]> {
+    // 先回到固定的欢迎页（常量路由，不随角色变化），再重置并重建路由。
+    // 否则旧角色的路由被移除后，当前地址会指向不存在的路由，被守卫判为 404。
+    await router.replace("/welcome");
     userInfo.value.currentRoleId = roleId;
     permissionStore.resetRouter();
     // 重新加载路由
