@@ -7,7 +7,7 @@
       </el-descriptions-item>
 
       <el-descriptions-item label="所属机构" label-align="right">
-        {{ infoFormData.instituteId }}
+        {{ infoFormData.instituteName || infoFormData.instituteId }}
       </el-descriptions-item>
       <el-descriptions-item label="会话标识" label-align="right">
         {{ infoFormData.token }}

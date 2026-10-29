@@ -127,6 +127,8 @@ export interface BizEventRecordDto {
   businessId?: string;
   /** 数据所属企业 ID */
   businessInstituteId?: string;
+  /** 数据所属企业名称 */
+  businessInstituteName?: string;
   /** 业务子类 */
   businessSubType?: string;
   /** 业务数据的表名 */
@@ -155,6 +157,8 @@ export interface BizEventRecordDto {
   operatorId?: string;
   /** 操作人所属企业 ID */
   operatorInstituteId?: string;
+  /** 操作人所属企业名称 */
+  operatorInstituteName?: string;
   /** 操作人姓名 */
   operatorName?: string;
   /** 重试次数 */
@@ -217,6 +221,8 @@ export interface BizEventRetryDto {
   businessId?: string;
   /** 数据所属企业 ID */
   businessInstituteId?: string;
+  /** 数据所属企业名称 */
+  businessInstituteName?: string;
   /** 备注 */
   description?: string;
   /** 日志 ID */
@@ -233,6 +239,8 @@ export interface BizEventRetryDto {
   operatorId?: string;
   /** 操作人所属企业 ID */
   operatorInstituteId?: string;
+  /** 操作人所属企业名称 */
+  operatorInstituteName?: string;
   /** 操作人姓名 */
   operatorName?: string;
   /** 记录 ID */
@@ -269,6 +277,8 @@ export interface LogUserLoginDto {
   id: string;
   /** 所属企业ID */
   instituteId?: string;
+  /** 所属企业名称 */
+  instituteName?: string;
   /** 登录地点 */
   loginAddress?: string;
   /** 登录IP */
@@ -587,6 +597,8 @@ export interface LogUserOnlineDto {
   id: string;
   /** 所属企业ID */
   instituteId?: string;
+  /** 所属企业名称 */
+  instituteName?: string;
   /** 登录地点 */
   loginAddress?: string;
   /** 登录IP */

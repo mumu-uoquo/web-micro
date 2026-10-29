@@ -8,7 +8,7 @@
         {{ infoFormData.userId }}
       </el-descriptions-item>
       <el-descriptions-item label="所属机构" label-align="right">
-        {{ infoFormData.instituteId }}
+        {{ infoFormData.instituteName || infoFormData.instituteId }}
       </el-descriptions-item>
       <el-descriptions-item label="登录时间" label-align="right">
         {{ formatDate(infoFormData.createTime, "YYYY-MM-DD HH:mm:ss") }}

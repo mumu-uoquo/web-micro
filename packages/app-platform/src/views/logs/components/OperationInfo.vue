@@ -10,7 +10,7 @@
       </el-descriptions-item>
 
       <el-descriptions-item label="所属机构" label-align="right">
-        {{ infoFormData.businessInstituteId }}
+        {{ infoFormData.businessInstituteName || infoFormData.businessInstituteId }}
       </el-descriptions-item>
       <el-descriptions-item label="会话标识" label-align="right">
         {{ infoFormData.token }}
@@ -26,6 +26,9 @@
       <el-descriptions-item label="初始操作" label-align="right" :span="2">
         {{ formatDate(infoFormData.operationTime, "YYYY-MM-DD HH:mm:ss") }}
         <el-tag>{{ infoFormData.operatorName }}</el-tag>
+        <span v-if="infoFormData.operatorInstituteName">
+          （{{ infoFormData.operatorInstituteName }}）
+        </span>
         {{ parseReturnCode(infoFormData.operationStatus) }}
       </el-descriptions-item>
 

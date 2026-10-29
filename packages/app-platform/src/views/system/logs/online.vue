@@ -61,7 +61,11 @@
         border
       >
         <el-table-column type="index" label="序号" width="60" align="center" />
-        <el-table-column prop="instituteId" label="所属机构" width="200" show-overflow-tooltip />
+        <el-table-column label="所属机构" width="200" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.instituteName || row.instituteId }}
+          </template>
+        </el-table-column>
         <el-table-column prop="userName" label="用户名" min-width="160" />
         <el-table-column prop="token" label="会话标识" width="180">
           <template #default="scope">
