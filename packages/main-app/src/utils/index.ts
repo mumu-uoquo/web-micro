@@ -16,7 +16,11 @@ export {
   passwordComplex,
   redirectToLogin,
 } from "@web-micro/shared";
-export type { UserStoreAdapter } from "@web-micro/shared";
+export type {
+  UserStoreAdapter,
+  SessionExpiredHandler,
+  SessionExpiredReason,
+} from "@web-micro/shared";
 export {
   formatGrowthRate,
   formatFileSize,
