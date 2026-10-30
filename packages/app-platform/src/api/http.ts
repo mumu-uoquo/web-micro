@@ -11,12 +11,23 @@ import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 function redirectToLogin(): void {
   AuthStorage.clearTokens();
 
+  if (qiankunWindow.__POWERED_BY_QIANKUN__) {
+    // 主应用使用 hash 路由，登录页地址形如 /#/login?redirect=<当前主应用地址>，登录后回到原页面
+    const current = window.location.hash.slice(1) || "/";
+    if (current.startsWith("/login")) return;
+    const query = encodeURIComponent(current);
+    window.location.replace(
+      `${window.location.pathname}${window.location.search}#/login?redirect=${query}`
+    );
+    // 仅改变 hash 不会刷新页面；刷新以清除主应用内存中的用户信息和动态路由
+    window.location.reload();
+    return;
+  }
+
   const baseUrl = import.meta.env.BASE_URL.endsWith("/")
     ? import.meta.env.BASE_URL
     : `${import.meta.env.BASE_URL}/`;
-  const loginUrl = qiankunWindow.__POWERED_BY_QIANKUN__ ? "/login" : `${baseUrl}#/login`;
-
-  window.location.replace(loginUrl);
+  window.location.replace(`${baseUrl}#/login`);
 }
 
 export const http = createHttpInstance(
