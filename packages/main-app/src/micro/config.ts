@@ -59,6 +59,16 @@ export function getMicroAppProps(): Record<string, unknown> {
   };
 }
 
+/**
+ * 是否启用多实例模式（VITE_APP_MULTI_INSTANCE=true）。默认关闭（单实例）。
+ *
+ * - 单实例：所有子应用共用一个挂载容器，同一时刻只挂载一个子应用，切换子应用会卸载上一个，
+ *   其页面缓存随之丢失。
+ * - 多实例：每个子应用使用独立容器并常驻（qiankun singular=false），切换子应用只切换显示，
+ *   页面缓存得以保留。该应用的标签全部关闭、切换角色或退出登录时才会卸载。
+ */
+export const MULTI_INSTANCE_ENABLED = import.meta.env.VITE_APP_MULTI_INSTANCE === "true";
+
 /** 新增子应用时只需在此增加一项。 */
 export const MICRO_APP_CONFIGS = [
   {
@@ -97,6 +107,16 @@ function matchesActiveRule(path: string, activeRule: string): boolean {
   );
 }
 
+/** 多实例模式下，子应用独立容器的元素 id。 */
+export function getSubAppContainerId(name: string): string {
+  return `sub-app-${name}`;
+}
+
+/** 获取子应用的挂载容器选择器：单实例共用配置中的容器，多实例使用各自独立的容器。 */
+export function resolveMicroAppContainer(config: MicroAppConfig): string {
+  return MULTI_INSTANCE_ENABLED ? `#${getSubAppContainerId(config.name)}` : config.container;
+}
+
 /** 根据当前构建模式获取子应用入口。 */
 export function resolveMicroAppEntry(config: MicroAppConfig): string {
   return import.meta.env.DEV ? config.entry.development : config.entry.production;
@@ -108,13 +128,20 @@ let lastShownActiveRule: string | undefined;
 /**
  * 将字符串 activeRule 转换为适用于主应用 Hash Router 的 qiankun 激活函数。
  *
- * 所有子应用共用同一个挂载容器，同一时刻只能有一个子应用处于激活状态，
+ * 单实例模式下，所有子应用共用同一个挂载容器，同一时刻只能有一个子应用处于激活状态，
  * 否则后挂载的应用会清空容器，已挂载的另一个应用无法再显示。因此：
  * - 地址栏属于某个子应用时，只激活该子应用；
  * - 地址栏是主应用自身页面（如欢迎页、个人中心）时，仅保留最近展示的那个子应用，
  *   且它仍有标签页时才保留，以便切回时恢复页面状态。
  */
 export function createHashActiveRule(activeRule: string): (location: Location) => boolean {
+  // 多实例：地址栏命中的子应用，以及仍有标签页的子应用都保持激活（各自使用独立容器）。
+  if (MULTI_INSTANCE_ENABLED) {
+    return (location) =>
+      matchesActiveRule(location.hash.slice(1), activeRule) ||
+      retainedMicroAppRoutePaths.some((path) => matchesActiveRule(path, activeRule));
+  }
+
   return (location) => {
     const hashPath = location.hash.slice(1);
     const hashApp = MICRO_APP_CONFIGS.find((config) =>

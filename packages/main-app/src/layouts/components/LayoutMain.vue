@@ -1,7 +1,18 @@
 <template>
   <section class="app-main" :style="{ height: appMainHeight }">
     <!-- 子应用挂载点始终保留在 DOM 中，供 qiankun 查找 -->
-    <div v-show="microAppRouteActive" id="sub-app-container"></div>
+    <!-- 多实例：每个子应用一个独立容器，只显示当前地址所属的子应用，其余保持挂载但隐藏 -->
+    <template v-if="MULTI_INSTANCE_ENABLED">
+      <div
+        v-for="config in MICRO_APP_CONFIGS"
+        v-show="isMicroAppRoute(route.path, config.name)"
+        :id="getSubAppContainerId(config.name)"
+        :key="config.name"
+        class="sub-app-container"
+      ></div>
+    </template>
+    <!-- 单实例：所有子应用共用一个容器 -->
+    <div v-else v-show="microAppRouteActive" id="sub-app-container" class="sub-app-container"></div>
 
     <!-- 微应用路由由 qiankun 渲染，避免宿主 Page404 与子应用争用内容区 -->
     <router-view>
@@ -28,12 +39,28 @@
 <script setup lang="ts">
 import { useRoute, type RouteLocationNormalized } from "vue-router";
 import { useSettingsStore, useTagsViewStore } from "@/stores";
-import { isMicroAppRoute } from "@/micro/config";
+import {
+  MICRO_APP_CONFIGS,
+  MULTI_INSTANCE_ENABLED,
+  getSubAppContainerId,
+  isMicroAppRoute,
+} from "@/micro/config";
 import variables from "@/styles/variables.module.scss";
 import Error404 from "@/views/error/404.vue";
 
 const route = useRoute();
 const microAppRouteActive = computed(() => isMicroAppRoute(route.path, route.meta.microApp));
+
+// 多实例：当前地址所属的子应用。容器从隐藏变为显示时，子应用内部的 onActivated 不会触发，
+// 图表、表格等依赖容器尺寸的组件可能在隐藏期间量到 0，这里派发一次 resize 让它们重新布局。
+const activeMicroAppName = computed(() =>
+  MULTI_INSTANCE_ENABLED
+    ? MICRO_APP_CONFIGS.find((config) => isMicroAppRoute(route.path, config.name))?.name
+    : undefined
+);
+watch(activeMicroAppName, (name) => {
+  if (name) nextTick(() => window.dispatchEvent(new Event("resize")));
+});
 const tagsViewStore = useTagsViewStore();
 const { visitedViews, cachedViews } = toRefs(tagsViewStore);
 
@@ -108,12 +135,12 @@ const transitionName = computed(() => {
   overflow-y: auto;
   background-color: var(--page-bg);
 
-  #sub-app-container {
+  .sub-app-container {
     width: 100%;
     height: 100%;
   }
-  #sub-app-container :deep([data-name]),
-  #sub-app-container :deep(#app) {
+  .sub-app-container :deep([data-name]),
+  .sub-app-container :deep(#app) {
     width: 100%;
     height: 100%;
   }
