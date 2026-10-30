@@ -22,6 +22,20 @@ export interface UserStoreAdapter {
   refreshToken(): Promise<{ accessToken: string; expireTime?: number }>;
 }
 
+/**
+ * 会话失效的原因
+ * - refresh-failed：令牌失效且刷新失败
+ * - kick-out：账号被踢下线
+ * - token-empty：请求缺少令牌或签名
+ */
+export type SessionExpiredReason = "refresh-failed" | "kick-out" | "token-empty";
+
+/**
+ * 会话失效处理回调：由各应用实现清理登录态并跳转登录页。
+ * shared 不依赖具体路由实例，不会自行跳转。
+ */
+export type SessionExpiredHandler = (reason: SessionExpiredReason, message?: string) => void;
+
 interface OriginalRequest {
   config: AxiosRequestConfig;
   resolve: (value: any) => void;
@@ -91,8 +105,17 @@ class AxiosWithTokenRefresh {
   private refreshTimer: any;
   private refreshPromise: Promise<any> | null; // 存储刷新 token 的 Promise
 
-  constructor(config: AxiosRequestConfig = {}, userStore: UserStoreAdapter, messageHandler?: (message: string) => void) {
+  // 可选的会话失效回调
+  private sessionExpiredHandler?: SessionExpiredHandler;
+
+  constructor(
+    config: AxiosRequestConfig = {},
+    userStore: UserStoreAdapter,
+    messageHandler?: (message: string) => void,
+    sessionExpiredHandler?: SessionExpiredHandler
+  ) {
     this.userStore = userStore;
+    this.sessionExpiredHandler = sessionExpiredHandler;
     this.messageHandler = messageHandler || ((msg: string) => console.error(msg || "系统出错"));
 
     // 基础配置
@@ -183,14 +206,30 @@ class AxiosWithTokenRefresh {
           this.isRefreshing = false;
           this.refreshPromise = null;
           // 拒绝所有等待的请求，并重新登录
-          this.rejectAllRequests(error);
-          redirectToLogin();
+          this.handleSessionExpired("refresh-failed");
           // 已经重定向到登录，所以不需要再冒泡处理异常
           // reject(error);
         });
     });
 
     return this.refreshPromise;
+  }
+
+  /**
+   * 会话失效：丢弃等待中的请求，并交由应用注册的回调清理登录态、跳转登录页。
+   * 未注册回调时保持原有行为（仅取得登录路由对象，不跳转）。
+   */
+  private handleSessionExpired(reason: SessionExpiredReason, message?: string) {
+    this.rejectAllRequests(new Error(message || "会话已失效"));
+    if (this.sessionExpiredHandler) {
+      try {
+        this.sessionExpiredHandler(reason, message);
+      } catch (e) {
+        console.error("会话失效处理异常", e);
+      }
+    } else {
+      redirectToLogin();
+    }
   }
 
   /**
@@ -360,7 +399,10 @@ class AxiosWithTokenRefresh {
             response.config?.headers?.logid,
             response.config?.url
           );
-          redirectToLogin();
+          this.handleSessionExpired(
+            status === ResultEnum.TOKEN_KICK_OUT ? "kick-out" : "token-empty",
+            message
+          );
           // return Promise.reject(new Error(message || "Error"));
         } else if (response.config?.silent) {
           // 2.4 交由由调用方处理错误
@@ -404,7 +446,10 @@ class AxiosWithTokenRefresh {
               error.response.config?.headers?.logid,
               error.response.config?.url
             );
-            redirectToLogin();
+            this.handleSessionExpired(
+              status === ResultEnum.TOKEN_KICK_OUT ? "kick-out" : "token-empty",
+              message
+            );
             // return Promise.reject(error);
             return;
           } else if (error.response.config?.silent) {
@@ -497,11 +542,14 @@ class AxiosWithTokenRefresh {
  * @param config Axios 基础配置
  * @param userStore UserStore 适配器（各应用自行实现 refreshToken）
  * @param messageHandler 可选的消息提示回调（例如 ElMessage；未传时降级为 console.error）
+ * @param sessionExpiredHandler 可选的会话失效回调（刷新令牌失败、被踢下线、缺少令牌时触发），
+ *   由应用清理登录态并跳转登录页；未传时不会跳转
  */
 export function createHttpInstance(
   config: AxiosRequestConfig,
   userStore: UserStoreAdapter,
-  messageHandler?: (message: string) => void
+  messageHandler?: (message: string) => void,
+  sessionExpiredHandler?: SessionExpiredHandler
 ): AxiosWithTokenRefresh {
-  return new AxiosWithTokenRefresh(config, userStore, messageHandler);
+  return new AxiosWithTokenRefresh(config, userStore, messageHandler, sessionExpiredHandler);
 }
