@@ -85,7 +85,27 @@ const i18n: I18n = createI18n({
 });
 
 // I18n 泛型默认类型会让 global.t 成为不可调用的联合类型，这里显式收窄
-configureRouteTitleTranslator((key) => (i18n.global as unknown as { t: (k: string) => string }).t(key));
+configureRouteTitleTranslator((key) =>
+  (i18n.global as unknown as { t: (k: string) => string }).t(key)
+);
+
+/**
+ * 切换界面语言（主应用切换语言后通过 Global_State 通知子应用）。
+ * 同时更新 vue-i18n 的当前语言和 appStore 中的语言（Element Plus 的 locale 依赖它）。
+ */
+export function setLanguage(lang: string) {
+  if (!lang || !(lang in localesConfigs)) {
+    return;
+  }
+  const appStore = useAppStoreHook();
+  if (appStore.language !== lang) {
+    appStore.changeLanguage(lang);
+  }
+  const locale = i18n.global.locale as unknown as { value: string };
+  if (locale.value !== lang) {
+    locale.value = lang;
+  }
+}
 
 /**
  * 全局注册 I18n，使用示例：

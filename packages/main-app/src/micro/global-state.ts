@@ -10,7 +10,7 @@
  */
 
 import { initGlobalState, type MicroAppStateActions } from "qiankun";
-import { AuthStorage } from "@/utils";
+import { AuthStorage, STORAGE_KEYS } from "@/utils";
 
 // ─── Global_State 数据结构 ─────────────────────────────────────────────────────
 
@@ -38,6 +38,8 @@ interface GlobalState {
   notifications: {
     unreadCount: number;
   };
+  /** 界面语言（zh-CN / en），主应用切换语言时更新，子应用据此切换自身的多语言 */
+  language: string;
 }
 
 // ─── 内部状态 ─────────────────────────────────────────────────────────────────
@@ -52,6 +54,8 @@ let _currentState: GlobalState = {
   cachedViews: [],
   fullscreen: null,
   notifications: { unreadCount: 0 },
+  // 初始语言与主应用 appStore 使用同一个存储键
+  language: localStorage.getItem(STORAGE_KEYS.LANGUAGE) || "zh-CN",
 };
 
 // ─── 初始化 ───────────────────────────────────────────────────────────────────

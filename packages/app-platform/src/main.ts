@@ -22,7 +22,7 @@ import "animate.css";
 import { createAppRouter, disposeAppRouter } from "./router/index";
 import { syncCachedViews } from "./router/cache";
 import { pinia } from "./stores";
-import { setupI18n } from "./plugins/i18n";
+import { setupI18n, setLanguage } from "./plugins/i18n";
 import ElementPlus from "element-plus";
 import * as ElementPlusIcons from "@element-plus/icons-vue";
 import {
@@ -92,6 +92,10 @@ function syncGlobalState(state: GlobalState): void {
   }
   if (Array.isArray(state.cachedViews)) {
     syncCachedViews(state.cachedViews);
+  }
+  // 主应用切换语言后同步子应用的多语言和 Element Plus 语言包
+  if (typeof state.language === "string") {
+    setLanguage(state.language);
   }
 }
 

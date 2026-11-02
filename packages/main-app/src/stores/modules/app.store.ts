@@ -4,6 +4,7 @@ import { store } from "@/stores";
 import { DeviceEnum, SidebarStatus } from "@/enums";
 import { STORAGE_KEYS } from "@/utils";
 import { defaults } from "@/settings";
+import { getGlobalActions } from "@/micro/global-state";
 
 export const useAppStore = defineStore("app", () => {
   const device = useStorage(STORAGE_KEYS.DEVICE, DeviceEnum.DESKTOP);
@@ -45,6 +46,15 @@ export const useAppStore = defineStore("app", () => {
   function changeLanguage(val: string) {
     language.value = val;
   }
+
+  // 语言变化时同步给子应用（通过 Global_State），子应用据此切换自身的多语言
+  watch(
+    language,
+    (val) => {
+      getGlobalActions().setState({ language: val });
+    },
+    { immediate: true }
+  );
 
   function activeTopMenu(val: string) {
     activeTopMenuPath.value = val;
