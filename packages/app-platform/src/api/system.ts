@@ -1154,6 +1154,8 @@ export interface LicenseRecordDto {
   createTime?: string;
   /** 创建人 */
   createUser?: string;
+  /** 创建人名称 */
+  createUserName?: string;
   /** 备注 */
   description?: string;
   /** 失败原因 */

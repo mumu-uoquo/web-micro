@@ -6,7 +6,12 @@
         <div class="flex-x-between">
           <span>授权信息</span>
           <div>
-            <el-button type="primary" :icon="Download" :loading="exporting" @click="handleExportMachineCode">
+            <el-button
+              type="primary"
+              :icon="Download"
+              :loading="exporting"
+              @click="handleExportMachineCode"
+            >
               导出机器码
             </el-button>
             <el-upload
@@ -24,19 +29,20 @@
       </template>
       <el-descriptions v-loading="infoLoading" :column="3" border>
         <el-descriptions-item label="拥有人">{{ licenseInfo.owner || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="序列号">{{ licenseInfo.serialNo || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="序列号">
+          {{ licenseInfo.serialNo || "-" }}
+        </el-descriptions-item>
         <el-descriptions-item label="系统版本">
           {{ licenseInfo.systemVersion || "-" }}
         </el-descriptions-item>
         <el-descriptions-item label="授权时间">
-          {{ licenseInfo.authorizedTime || "-" }}
+          {{ showTime(licenseInfo.authorizedTime) }}
         </el-descriptions-item>
-        <el-descriptions-item label="有效期开始">{{ licenseInfo.validFrom || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="有效期开始">
+          {{ showTime(licenseInfo.validFrom, DATE_FORMAT) }}
+        </el-descriptions-item>
         <el-descriptions-item label="有效期结束">
-          {{ licenseInfo.validExpire || "永久有效" }}
-        </el-descriptions-item>
-        <el-descriptions-item label="过期时间">
-          {{ licenseInfo.expireTime || "永久有效" }}
+          {{ showTime(licenseInfo.validExpire, DATE_FORMAT, "永久有效") }}
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -59,15 +65,12 @@
         <el-table-column type="index" label="序号" width="80" align="center" />
         <el-table-column prop="serialNo" label="序列号" min-width="180" show-overflow-tooltip />
         <el-table-column prop="systemVersion" label="系统版本" width="120" align="center" />
-        <el-table-column prop="validFrom" label="有效期开始" width="170" align="center" />
-        <el-table-column prop="validExpire" label="有效期结束" width="170" align="center">
-          <template #default="{ row }">{{ row.validExpire || "永久有效" }}</template>
+        <el-table-column prop="validFrom" label="有效期开始" width="130" align="center">
+          <template #default="{ row }">{{ showTime(row.validFrom, DATE_FORMAT) }}</template>
         </el-table-column>
-        <el-table-column prop="importResult" label="导入结果" width="100" align="center">
+        <el-table-column prop="validExpire" label="有效期结束" width="130" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.importResult ? 'success' : 'danger'">
-              {{ row.importResult ? "成功" : "失败" }}
-            </el-tag>
+            {{ showTime(row.validExpire, DATE_FORMAT, "永久有效") }}
           </template>
         </el-table-column>
         <el-table-column prop="isCurrent" label="当前生效" width="100" align="center">
@@ -76,10 +79,19 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
+        <el-table-column prop="importResult" label="导入结果" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.importResult ? 'success' : 'danger'">
+              {{ row.importResult ? "成功" : "失败" }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="failReason" label="失败原因" min-width="180" show-overflow-tooltip />
         <el-table-column prop="description" label="备注" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="createUser" label="导入人" width="120" align="center" />
-        <el-table-column prop="createTime" label="导入时间" width="170" align="center" />
+        <el-table-column prop="createUserName" label="导入人" width="120" align="center" />
+        <el-table-column prop="createTime" label="导入时间" width="170" align="center">
+          <template #default="{ row }">{{ showTime(row.createTime) }}</template>
+        </el-table-column>
       </el-table>
 
       <template #footer>
@@ -104,6 +116,21 @@ import { ElMessage } from "element-plus";
 import type { UploadFile } from "element-plus";
 import { Download, Upload, Refresh } from "@element-plus/icons-vue";
 import SystemAPI, { LicenseInfoDto, LicenseRecordDto, LicenseRecordPageParam } from "@/api/system";
+import { formatDate } from "@/utils";
+
+/* ***************************** 时间显示 ********************************* */
+const DATETIME_FORMAT = "YYYY-MM-DD HH:mm:ss";
+const DATE_FORMAT = "YYYY-MM-DD";
+
+/**
+ * 格式化时间显示：空值显示 empty；无法解析的值原样显示，避免丢信息
+ */
+function showTime(value: unknown, format = DATETIME_FORMAT, empty = "-"): string {
+  if (!value) {
+    return empty;
+  }
+  return formatDate(value, format) || String(value);
+}
 
 /* ***************************** 授权信息 ********************************* */
 const infoLoading = ref(false);
