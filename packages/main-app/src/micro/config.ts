@@ -69,6 +69,15 @@ export function getMicroAppProps(): Record<string, unknown> {
  */
 export const MULTI_INSTANCE_ENABLED = import.meta.env.VITE_APP_MULTI_INSTANCE === "true";
 
+/**
+ * 是否启用 qiankun 的子应用样式隔离（VITE_APP_STYLE_ISOLATION=true）。默认关闭。
+ *
+ * 开启时子应用样式会被加前缀，但 :root 变量会被改写到子应用容器上（覆盖主应用通过
+ * html.dark、行内样式设置的暗黑模式/主题色变量），html.dark 等选择器会失效，
+ * 子应用无法跟随主应用切换主题。
+ */
+export const STYLE_ISOLATION_ENABLED = import.meta.env.VITE_APP_STYLE_ISOLATION === "true";
+
 /** 新增子应用时只需在此增加一项。 */
 export const MICRO_APP_CONFIGS = [
   {
