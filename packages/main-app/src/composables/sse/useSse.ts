@@ -244,6 +244,9 @@ function createSseConnection(options: UseSseOptions = {}) {
           done,
           value,
         }: ReadableStreamReadResult<Uint8Array>): Promise<void> | void => {
+          // 读取期间连接已被主动断开/清理（如被踢下线），reader 已置空，直接结束
+          if (isManualDisconnect || !reader) return;
+
           if (done) {
             connectionState.value = SseConnectionState.DISCONNECTED;
             log("SSE 连接已关闭");
@@ -285,7 +288,9 @@ function createSseConnection(options: UseSseOptions = {}) {
             }
           }
 
-          return reader!.read().then(processChunk);
+          // 处理器可能在上面的循环中断开了连接（如 kickOut 调用 cleanupSse），此时不再继续读取
+          if (isManualDisconnect || !reader) return;
+          return reader.read().then(processChunk);
         };
 
         return reader.read().then(processChunk);

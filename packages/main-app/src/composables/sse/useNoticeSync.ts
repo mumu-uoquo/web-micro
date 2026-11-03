@@ -1,3 +1,4 @@
+import router from "@/router";
 import { useUserStoreHook } from "@/stores";
 import type { MsgInfoViewDto } from "@/api/message";
 import { useSse, cleanupSse } from "./useSse";
@@ -44,7 +45,8 @@ function createNoticeSyncComposable() {
         useUserStoreHook()
           .resetAllState()
           .then(() => {
-            location.href = "/login";
+            // 主应用使用 hash 路由，用 router 跳转（地址为 /#/login），不能直接写 location.href = "/login"
+            void router.replace("/login");
           });
       },
     });
