@@ -1,6 +1,28 @@
 import { AuthStorage, generateSignature } from "@/utils";
+import type { SessionExpiredReason } from "@/utils";
 import { USER_BASE_URL } from "@/api/sse";
 import { isMainWindow } from "@/utils";
+import { ResultEnum } from "@/enums/system/result.enum";
+import { useUserStoreHook } from "@/stores";
+
+/**
+ * 服务端以 HTTP 200 + Response-Code 头返回的鉴权类错误码。
+ * 这类错误重连没有意义，需要刷新令牌或回到登录页。
+ */
+class SseAuthError extends Error {
+  constructor(public readonly code: string) {
+    super(`HTTP ${code}`);
+  }
+}
+
+const SESSION_EXPIRED_CODES: Record<string, SessionExpiredReason> = {
+  [ResultEnum.TOKEN_KICK_OUT]: "kick-out",
+  [ResultEnum.PARAM_SIGN_EMPTY]: "token-empty",
+  [ResultEnum.TOKEN_EMPTY]: "token-empty",
+};
+
+const isAuthCode = (code: string) =>
+  code === ResultEnum.TOKEN_INVALID || code in SESSION_EXPIRED_CODES;
 
 export interface UseSseOptions {
   url?: string; // SSE 连接地址，默认走 VITE_APP_BASE_API 代理
@@ -87,6 +109,50 @@ function createSseConnection(options: UseSseOptions = {}) {
     }, currentReconnectInterval);
   };
 
+  // 是否已为本轮鉴权失败刷新过令牌（连接成功后复位），避免刷新后仍被拒绝时无限循环
+  let authRefreshed = false;
+
+  /**
+   * 处理鉴权类错误码：
+   * - 02006（令牌失效）：先刷新令牌并立即重连一次，刷新失败或刷新后仍被拒绝则回到登录页。
+   *   与 HTTP 请求的处理一致，避免访问令牌正常过期但刷新令牌仍有效时被强制登出。
+   * - 02021（被踢下线）、02001/02005（缺少令牌/签名）：直接回到登录页。
+   */
+  const handleAuthError = async (code: string, usedToken: string) => {
+    if (isManualDisconnect) return;
+
+    if (code === ResultEnum.TOKEN_INVALID && !authRefreshed) {
+      authRefreshed = true;
+      // 请求期间 HTTP 层可能已经刷新过令牌，此时直接用新令牌重连，避免重复刷新
+      const latestToken = AuthStorage.getAccessToken();
+      if (latestToken && latestToken !== usedToken) {
+        log("检测到令牌已被刷新，重新建立 SSE 连接");
+        connect();
+        return;
+      }
+      try {
+        await useUserStoreHook().refreshToken();
+        log("令牌已刷新，重新建立 SSE 连接");
+        if (!isManualDisconnect) connect();
+        return;
+      } catch (e) {
+        logError("刷新令牌失败，跳转登录页:", e);
+        await expireSession("refresh-failed");
+        return;
+      }
+    }
+
+    await expireSession(SESSION_EXPIRED_CODES[code] ?? "refresh-failed");
+  };
+
+  // 停止重连并交给主应用的会话失效处理（清理登录态、跳转登录页）
+  const expireSession = async (reason: SessionExpiredReason) => {
+    disconnect();
+    // 动态引入，避免 stores → composables/sse → api/http → stores 的循环依赖
+    const { handleSessionExpired } = await import("@/api/http");
+    handleSessionExpired(reason);
+  };
+
   // 内部断开：仅中止连接和清理资源，不修改 isManualDisconnect，不影响重连逻辑
   const _abortAndReset = () => {
     connectionTimeoutTimer = clearTimer(connectionTimeoutTimer);
@@ -151,10 +217,15 @@ function createSseConnection(options: UseSseOptions = {}) {
         // 自定义错误码
         const resCode = response.headers.get("response-code");
         if (resCode) {
+          // 鉴权类错误码：令牌失效/被踢下线/缺少令牌，重连无效，交由 handleAuthError 处理
+          if (isAuthCode(resCode)) {
+            throw new SseAuthError(resCode);
+          }
           throw new Error(`HTTP ${resCode}`);
         }
         connectionTimeoutTimer = clearTimer(connectionTimeoutTimer);
         connectionState.value = SseConnectionState.CONNECTED;
+        authRefreshed = false;
         reconnectAttempts = 0;
         currentReconnectInterval = config.reconnectInterval;
         log("SSE 连接已建立");
@@ -222,6 +293,11 @@ function createSseConnection(options: UseSseOptions = {}) {
       .catch((err) => {
         if (err.name === "AbortError") {
           log("SSE 连接已主动断开");
+        } else if (err instanceof SseAuthError) {
+          logError("SSE 鉴权失败:", err.message);
+          connectionTimeoutTimer = clearTimer(connectionTimeoutTimer);
+          connectionState.value = SseConnectionState.DISCONNECTED;
+          void handleAuthError(err.code, token);
         } else {
           logError("SSE 连接错误:", err);
           connectionState.value = SseConnectionState.DISCONNECTED;

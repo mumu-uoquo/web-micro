@@ -14,7 +14,7 @@ let sessionExpiredHandling = false;
  * 由主应用负责跳转。否则页面刷新后令牌已失效时，路由守卫中等待用户信息的请求被丢弃，
  * 页面会一直停在空白。
  */
-const handleSessionExpired: SessionExpiredHandler = (reason, message) => {
+export const handleSessionExpired: SessionExpiredHandler = (reason, message) => {
   if (sessionExpiredHandling) return;
   sessionExpiredHandling = true;
 
