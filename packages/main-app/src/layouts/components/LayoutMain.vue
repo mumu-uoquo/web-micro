@@ -1,18 +1,13 @@
 <template>
   <section class="app-main" :style="{ height: appMainHeight }">
-    <!-- 子应用挂载点始终保留在 DOM 中，供 qiankun 查找 -->
-    <!-- 多实例：每个子应用一个独立容器，只显示当前地址所属的子应用，其余保持挂载但隐藏 -->
-    <template v-if="MULTI_INSTANCE_ENABLED">
-      <div
-        v-for="config in MICRO_APP_CONFIGS"
-        v-show="isMicroAppRoute(route.path, config.name)"
-        :id="getSubAppContainerId(config.name)"
-        :key="config.name"
-        class="sub-app-container"
-      ></div>
-    </template>
-    <!-- 单实例：所有子应用共用一个容器 -->
-    <div v-else v-show="microAppRouteActive" id="sub-app-container" class="sub-app-container"></div>
+    <!--
+      子应用挂载点始终保留在 DOM 中，供 qiankun 查找。
+      容器元素是模块级常驻的（见 @/micro/containers），挂载后才放入此处；
+      布局切换导致本组件重建时，同一批容器被移动到新的位置，已挂载的子应用不会丢失。
+      多实例：每个子应用一个独立容器，只显示当前地址所属的子应用，其余保持挂载但隐藏。
+      单实例：所有子应用共用一个容器。
+    -->
+    <div v-show="microAppRouteActive" ref="subAppHostRef" class="sub-app-host"></div>
 
     <!-- 微应用路由由 qiankun 渲染，避免宿主 Page404 与子应用争用内容区 -->
     <router-view>
@@ -45,11 +40,37 @@ import {
   getSubAppContainerId,
   isMicroAppRoute,
 } from "@/micro/config";
+import { getPersistentSubAppContainer } from "@/micro/containers";
 import variables from "@/styles/variables.module.scss";
 import Error404 from "@/views/error/404.vue";
 
 const route = useRoute();
 const microAppRouteActive = computed(() => isMicroAppRoute(route.path, route.meta.microApp));
+
+// 常驻容器：多实例每个子应用一个，单实例共用 #sub-app-container（与 MICRO_APP_CONFIGS 中的 container 一致）
+const subAppContainers: { name?: string; el: HTMLElement }[] = MULTI_INSTANCE_ENABLED
+  ? MICRO_APP_CONFIGS.map((config) => ({
+      name: config.name,
+      el: getPersistentSubAppContainer(getSubAppContainerId(config.name)),
+    }))
+  : [{ name: undefined, el: getPersistentSubAppContainer("sub-app-container") }];
+
+const subAppHostRef = ref<HTMLElement>();
+
+// appendChild 对已在其他位置的节点是移动而非复制，旧布局销毁后容器及其内容原样保留
+onMounted(() => {
+  const host = subAppHostRef.value;
+  if (!host) return;
+  subAppContainers.forEach(({ el }) => host.appendChild(el));
+});
+
+// 多实例：只显示当前地址所属的子应用
+watchEffect(() => {
+  if (!MULTI_INSTANCE_ENABLED) return;
+  subAppContainers.forEach(({ name, el }) => {
+    el.style.display = isMicroAppRoute(route.path, name) ? "" : "none";
+  });
+});
 
 // 多实例：当前地址所属的子应用。容器从隐藏变为显示时，子应用内部的 onActivated 不会触发，
 // 图表、表格等依赖容器尺寸的组件可能在隐藏期间量到 0，这里派发一次 resize 让它们重新布局。
@@ -135,12 +156,17 @@ const transitionName = computed(() => {
   overflow-y: auto;
   background-color: var(--page-bg);
 
-  .sub-app-container {
+  /* 宿主不生成盒子，容器的尺寸仍相对于 .app-main */
+  .sub-app-host {
+    display: contents;
+  }
+  /* 容器由脚本创建，不带 scoped 属性，需用 :deep 命中 */
+  .sub-app-host :deep(.sub-app-container) {
     width: 100%;
     height: 100%;
   }
-  .sub-app-container :deep([data-name]),
-  .sub-app-container :deep(#app) {
+  .sub-app-host :deep(.sub-app-container [data-name]),
+  .sub-app-host :deep(.sub-app-container #app) {
     width: 100%;
     height: 100%;
   }
