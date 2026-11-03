@@ -78,6 +78,7 @@
 import { useRoute, useRouter } from "vue-router";
 import type { LocationQueryRaw, RouteRecordRaw } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
+import { resolve } from "path-browserify";
 import { useLayout } from "./useLayout";
 import { useAppStore, usePermissionStore, useSettingsStore } from "@/stores";
 import { isExternal, translateRouteTitle } from "@/utils";
@@ -126,17 +127,50 @@ function resolvePath(routePath: string) {
   if (isExternal(routePath)) {
     return routePath;
   }
-  if (routePath.startsWith("/")) {
-    // 若已经是/开头，表示绝对URL，不再拼接父级路径
-    //return activeTopMenuPath.value + routePath;
-    return routePath;
-  }
-  return `${activeTopMenuPath.value}/${routePath}`;
+  // 绝对路径原样返回；相对路径基于顶级菜单拼接。
+  // 顶级菜单为 "/" 时（如欢迎页），不能直接字符串拼接，否则会得到 "//welcome"。
+  return resolve(activeTopMenuPath.value || "/", routePath);
 }
 
-// 从路径提取顶级菜单路径
-function extractTopMenuPath(path: string): string {
-  return path.split("/").filter(Boolean).length > 1 ? path.match(/^\/[^/]+/)?.[0] || "/" : "/";
+/**
+ * 根据当前访问路径查找所属的顶级菜单路径。
+ *
+ * 菜单路径带有微应用前缀（如 /platform/account/user），且子菜单路径不一定以父菜单路径开头
+ * （如 /home 下的 /dashboard/index），因此不能用路径第一段推断，而是在路由树中查找：
+ * 1. 优先精确匹配（路径等于某个菜单节点）
+ * 2. 其次取最长前缀匹配（详情页等不在菜单中的子页面）
+ */
+function findTopMenuPath(targetPath: string): string | undefined {
+  const found: { exact?: string; prefix?: string; prefixLength: number } = { prefixLength: -1 };
+
+  const walk = (list: RouteRecordRaw[], base: string, topPath?: string) => {
+    for (const item of list) {
+      if (found.exact || isExternal(item.path)) continue;
+
+      const fullPath = resolve(base, item.path);
+      const currentTop = topPath ?? item.path;
+
+      if (fullPath === targetPath) {
+        found.exact = currentTop;
+        return;
+      }
+      if (
+        fullPath !== "/" &&
+        targetPath.startsWith(`${fullPath}/`) &&
+        fullPath.length > found.prefixLength
+      ) {
+        found.prefix = currentTop;
+        found.prefixLength = fullPath.length;
+      }
+      if (item.children?.length) {
+        walk(item.children, fullPath, currentTop);
+      }
+    }
+  };
+
+  // 使用完整路由表（含隐藏的 "/" 根路由），保证欢迎页、个人中心也能找到所属菜单
+  walk(permissionStore.routes, "/");
+  return found.exact ?? found.prefix;
 }
 
 // 顶部菜单点击
@@ -170,7 +204,15 @@ function navigateToFirstMenu(menus: RouteRecordRaw[]) {
 watch(
   () => route.path,
   (newPath) => {
-    const topMenuPath = extractTopMenuPath(newPath);
+    // 详情页等可通过 meta.activeMenu 指定所属菜单，优先按它查找
+    const activeMenu = typeof route.meta?.activeMenu === "string" ? route.meta.activeMenu : "";
+    // 找不到所属菜单时（如 404 页）保持当前顶部菜单不变
+    const topMenuPath =
+      (activeMenu && findTopMenuPath(activeMenu)) ||
+      findTopMenuPath(newPath) ||
+      activeTopMenuPath.value;
+    if (!topMenuPath) return;
+
     const isTopMenuChanged = topMenuPath !== activeTopMenuPath.value;
 
     if (isTopMenuChanged) {
