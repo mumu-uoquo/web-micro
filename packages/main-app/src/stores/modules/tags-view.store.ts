@@ -272,31 +272,50 @@ export const useTagsViewStore = defineStore("tagsView", () => {
       keepAlive: route.meta?.keepAlive,
       query: route.query,
     };
-    delView(tags).then((res: any) => {
-      if (isActive(tags)) {
-        toLastView(res.visitedViews, tags);
-      }
-    });
+    // 先跳转再移除，原因见 LayoutTagsView 的 closeSelectedTag
+    const leave = isActive(tags) ? toNeighborView(tags) : Promise.resolve();
+    leave.then(() => delView(tags));
   }
 
   function isActive(tag: TagView) {
     return tag.path === route.path;
   }
 
-  function toLastView(visitedViews: TagView[], view?: TagView) {
+  /**
+   * 跳转到最后一个标签；没有标签时回到首页。
+   * 返回跳转的 Promise（跳转失败也会 resolve），调用方可等待跳转完成后再做后续处理。
+   */
+  function toLastView(visitedViews: TagView[], view?: TagView): Promise<unknown> {
     const latestView = visitedViews.slice(-1)[0];
+    let navigation: Promise<unknown>;
     if (latestView && latestView.fullPath) {
-      router.push(latestView.fullPath);
+      navigation = router.push(latestView.fullPath);
     } else {
       // now the default is to redirect to the home page if there is no tags-view,
       // you can adjust it according to your needs.
       if (view?.name === "Dashboard") {
         // to reload home page
-        router.replace("/redirect" + view.fullPath);
+        navigation = router.replace("/redirect" + view.fullPath);
       } else {
-        router.push("/");
+        navigation = router.push("/");
       }
     }
+    return navigation.catch(() => {});
+  }
+
+  /**
+   * 关闭指定标签前，跳转到它的相邻标签：优先右邻，右侧没有时取左邻。
+   * 固定标签（如 /welcome）位于列表最前，因此没有其他动态标签时会落到固定标签上。
+   * 需在移除该标签之前调用；返回跳转的 Promise。
+   */
+  function toNeighborView(view: TagView): Promise<unknown> {
+    const views = visitedViews.value;
+    const index = views.findIndex((v) => v.path === view.path);
+    if (index === -1) {
+      return toLastView(views, view);
+    }
+    const neighbor = views[index + 1] ?? views[index - 1];
+    return toLastView(neighbor ? [neighbor] : [], view);
   }
 
   return {
@@ -321,6 +340,7 @@ export const useTagsViewStore = defineStore("tagsView", () => {
     closeCurrentView,
     isActive,
     toLastView,
+    toNeighborView,
     updateTagName,
   };
 });

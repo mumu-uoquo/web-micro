@@ -30,7 +30,14 @@ function scheduleMicroAppReroute(): void {
     rerouteScheduled = false;
     // retained path 不是浏览器 URL 的一部分，移除最后一个微应用标签时
     // 需要主动通知 single-spa/qiankun 重新计算 activeRule 并执行 unmount。
-    window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state }));
+    //
+    // 这里不能派发 popstate：vue-router 也监听 popstate，且 single-spa 会缓存其监听器并在
+    // 重新计算后用旧的 history.state 回调。关闭激活标签时，router.push(上一个标签) 正在进行，
+    // vue-router 会把待完成的导航改回当前（已关闭的）地址，导致跳转被取消、标签被重新加入，
+    // 表现为"某子应用只剩一个激活标签时无法关闭"。
+    // single-spa 同样监听 hashchange，而 vue-router 不监听它，因此用它触发重新计算。
+    const url = window.location.href;
+    window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: url, newURL: url }));
   });
 }
 

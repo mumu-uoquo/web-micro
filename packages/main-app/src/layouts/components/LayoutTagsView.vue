@@ -387,14 +387,16 @@ const refreshSelectedTag = (tag: TagView | null) => {
 };
 
 // 关闭指定标签页，若关闭的是当前激活标签则跳转到最后一个
-const closeSelectedTag = (tag: TagView | null) => {
+const closeSelectedTag = async (tag: TagView | null) => {
   if (!tag) return;
 
-  tagsViewStore.delView(tag).then((result: any) => {
-    if (tagsViewStore.isActive(tag)) {
-      tagsViewStore.toLastView(result.visitedViews, tag);
-    }
-  });
+  // 关闭激活标签时，先跳转到相邻标签（优先右邻，右侧没有则左邻；没有动态标签时左邻即固定标签，
+  // 如 /welcome），跳转完成后再移除当前标签。若先移除再跳转，跳转过程中一旦被其他导航打断，
+  // 当前路由仍是已关闭的页面，路由监听会把刚关闭的标签重新加回来。
+  if (tagsViewStore.isActive(tag)) {
+    await tagsViewStore.toNeighborView(tag);
+  }
+  await tagsViewStore.delView(tag);
 };
 
 // 关闭当前激活标签以外的其他标签
@@ -459,10 +461,13 @@ const closeOtherTags = () => {
 };
 
 // 关闭所有标签页
-const closeAllTags = (tag: TagView | null) => {
-  tagsViewStore.delAllViews().then((result: any) => {
-    tagsViewStore.toLastView(result.visitedViews, tag || undefined);
-  });
+const closeAllTags = async (tag: TagView | null) => {
+  // 仅保留固定标签；当前页不在其中时，先跳转到固定标签（如 /welcome）再移除，原因见 closeSelectedTag
+  const remaining = visitedViews.value.filter((item) => item.affix);
+  if (!remaining.some((item) => item.path === route.path)) {
+    await tagsViewStore.toLastView(remaining, tag || undefined);
+  }
+  await tagsViewStore.delAllViews();
 };
 
 // 右键菜单生命周期：显示时监听外部点击关闭，卸载时移除监听
