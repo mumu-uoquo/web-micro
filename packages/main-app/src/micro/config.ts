@@ -2,6 +2,7 @@
 
 import { AuthStorage } from "@/utils";
 import { getGlobalActions } from "./global-state";
+import { subscribeSseEvent } from "./sse-bridge";
 
 export interface MicroAppEntry {
   readonly development: string;
@@ -56,6 +57,8 @@ export function getMicroAppProps(): Record<string, unknown> {
     userInfo,
     permissions,
     cachedViews,
+    // SSE 连接只由主应用持有，子应用通过它订阅主应用转发的事件（禁止自建 SSE 连接）
+    onSseEvent: subscribeSseEvent,
   };
 }
 

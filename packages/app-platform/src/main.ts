@@ -30,7 +30,8 @@ import {
   updatePermissions,
   updateCurrentRole,
 } from "./directives/permission";
-import { AuthStorage, consumeTabTicket } from "@/utils";
+import { AuthStorage, consumeTabTicket, attachHostSse, detachHostSse } from "@/utils";
+import type { HostSseSubscribe } from "@/utils";
 import { qiankunWindow, renderWithQiankun } from "vite-plugin-qiankun/dist/helper";
 
 // ── qiankun 全局标志声明 ────────────────────────────────────────────────────
@@ -64,6 +65,11 @@ export interface QiankunProps {
   ) => void;
   /** 向 Main_App 推送部分状态更新 */
   setGlobalState: (state: Partial<GlobalState>) => void;
+  /**
+   * 订阅 Main_App 转发的 SSE 事件。SSE 连接只由主应用持有，子应用禁止自建连接；
+   * 页面中请使用 useHostSse(eventName, handler)。非 qiankun 运行时不存在。
+   */
+  onSseEvent?: HostSseSubscribe;
 }
 
 /**
@@ -131,6 +137,9 @@ export async function mount(props: QiankunProps): Promise<void> {
 
   const router = createAppRouter(props);
 
+  // 连接主应用的 SSE 事件转发通道（需在页面组件创建前完成，页面订阅才能生效）
+  attachHostSse(props.onSseEvent);
+
   app = createApp(AppComponent);
   app.use(router);
   app.use(pinia);
@@ -173,6 +182,9 @@ export async function mount(props: QiankunProps): Promise<void> {
  */
 export async function unmount(): Promise<void> {
   disposeAppRouter();
+
+  // 取消主应用转发的 SSE 事件订阅
+  detachHostSse();
 
   // 注销 Global_State 监听
   if (unsubscribeGlobalState) {

@@ -2,6 +2,7 @@ import { useUserStoreHook } from "@/stores";
 import type { MsgInfoViewDto } from "@/api/message";
 import { useSse, cleanupSse } from "./useSse";
 import { getGlobalActions } from "@/micro/global-state";
+import { startSseForwarding } from "@/micro/sse-bridge";
 
 export type NoticeCallback = (data: MsgInfoViewDto) => void;
 
@@ -81,6 +82,8 @@ function createNoticeSyncComposable() {
       sse.on("notify", (data: MsgInfoViewDto) => dispatch(notifyCallbacks.value, data)),
       sse.on("message", (data: MsgInfoViewDto) => dispatch(messageCallbacks.value, data)),
       sse.on("todo", (data: MsgInfoViewDto) => dispatch(todoCallbacks.value, data)),
+      // 把白名单事件转发给子应用（子应用不自建 SSE 连接）
+      startSseForwarding(sse.on),
     ];
     console.info("[SSE] NoticeSync 初始化完成");
   };

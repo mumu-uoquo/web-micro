@@ -9,7 +9,11 @@ export {
   getRangeDate,
   guid,
   passwordComplex,
+  attachHostSse,
+  detachHostSse,
+  onHostSseEvent,
 } from "@web-micro/shared";
+export type { HostSseEvent, HostSseHandler, HostSseSubscribe } from "@web-micro/shared";
 export { configureCodeResolvers, parseReturnCode, parseDictCode } from "./common";
 export {
   formatGrowthRate,

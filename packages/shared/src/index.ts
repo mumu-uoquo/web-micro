@@ -18,6 +18,10 @@ export { guid, getRangeDate, assert, passwordComplex } from "./utils/common";
 export { default as FileUtil } from "./utils/file";
 export type { UploadConfigParam } from "./utils/file";
 
+// 子应用订阅主应用转发的 SSE 事件（子应用禁止自建 SSE 连接）
+export { attachHostSse, detachHostSse, onHostSseEvent } from "./utils/hostSse";
+export type { HostSseEvent, HostSseHandler, HostSseSubscribe } from "./utils/hostSse";
+
 // ResultEnum — Task 2.6
 export { ResultEnum } from "./enums/result.enum";
 

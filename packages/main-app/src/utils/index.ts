@@ -20,6 +20,8 @@ export type {
   UserStoreAdapter,
   SessionExpiredHandler,
   SessionExpiredReason,
+  HostSseEvent,
+  HostSseHandler,
 } from "@web-micro/shared";
 export {
   formatGrowthRate,
