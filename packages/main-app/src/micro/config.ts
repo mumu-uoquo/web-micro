@@ -206,6 +206,18 @@ export function buildHostRoutePath(microPath: string, microApp?: string): string
   return path === "/" ? activeRule : `${activeRule}${path}`;
 }
 
+/**
+ * 是否访客页面（免登录）。仅放开两类地址：
+ * - /visitor、/visitor/**
+ * - <微前端前缀>/visitor、<微前端前缀>/visitor/**（如 /platform/visitor/**、/operate/visitor/**）
+ * 不能用 includes 之类的宽松匹配，否则路径中任意位置带 /visitor/ 的业务页面都会被当成匿名页。
+ */
+export function isVisitorRoute(path: string): boolean {
+  const matches = (prefix: string) =>
+    path === `${prefix}/visitor` || path.startsWith(`${prefix}/visitor/`);
+  return matches("") || MICRO_APP_CONFIGS.some((config) => matches(config.activeRule));
+}
+
 /** 判断标准化路由是否属于指定或任一已注册微应用。 */
 export function isMicroAppRoute(path: string, microApp?: string): boolean {
   const activeRule = resolveMicroAppActiveRule(microApp);

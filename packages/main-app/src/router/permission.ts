@@ -2,6 +2,7 @@ import type { RouteLocationNormalized } from "vue-router";
 import NProgress from "@/plugins/nprogress";
 import router from "@/router";
 import { redirectToLogin } from "@/utils";
+import { isVisitorRoute } from "@/micro/config";
 import { usePermissionStore, useUserStore, useAppStore } from "@/stores";
 
 export function setupPermissionGuard() {
@@ -24,8 +25,8 @@ export function setupPermissionGuard() {
 
     try {
       // 白名单处理
-      // 使用 includes 而非 startsWith，以覆盖带子应用前缀的路径（如 /platform/visitor/**）
-      if (whiteList.includes(to.path) || to.path.includes("/visitor/")) {
+      // 访客页面只放开 /visitor/** 和 <微前端前缀>/visitor/**（如 /platform/visitor/**），见 isVisitorRoute
+      if (whiteList.includes(to.path) || isVisitorRoute(to.path)) {
         return true;
       }
 
