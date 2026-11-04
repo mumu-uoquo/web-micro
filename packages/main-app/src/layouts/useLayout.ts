@@ -30,6 +30,8 @@ export function buildQueryString(params: MenuNode["params"]): string {
  *
  * 外链原样打开；内部路径按主应用的 Hash 路由拼成 origin/#/xxx（与 redirect.vue 的 openWindow 一致），
  * 否则会被当成服务端路径打开。
+ *
+ * 外链与内部页面使用不同的 window.open 特性，见下方注释。
  */
 export function openMenuPopup(url: string, query: Record<string, string> = {}): void {
   let target = url;
@@ -40,7 +42,10 @@ export function openMenuPopup(url: string, query: Record<string, string> = {}): 
   if (search) {
     target += (target.includes("?") ? "&" : "?") + search;
   }
-  window.open(target, "_blank", "noopener,noreferrer");
+  // 外链：断开 opener 并去掉 Referer，防止外部站点通过 window.opener 反向操作本页面。
+  // 内部页面：保留 opener —— 浏览器会复制当前标签页的 sessionStorage（未勾选「记住我」时令牌在其中），
+  // 并且 isMainWindow() 依赖 opener 判断是否主窗口，弹出的页面不应再建立 SSE 连接。
+  window.open(target, "_blank", isExternal(url) ? "noopener,noreferrer" : undefined);
 }
 
 export function useLayout() {

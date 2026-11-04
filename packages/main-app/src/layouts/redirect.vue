@@ -47,8 +47,10 @@ function handleParams(params: LocationQuery): Record<string, string> {
  * 打开外部链接
  */
 function openWindow(url: string, params: Record<string, string>) {
+  // 必须在改写 url 之前判断：内部地址下面会被拼成 origin/#/xxx，之后再判断会被当成外链
+  const external = isExternal(url);
   // 1. 构建完整的URL（包含查询参数）
-  if (!isExternal(url)) {
+  if (!external) {
     url = url.startsWith("/") ? url.substring(1) : url;
     url = `${window.location.origin}/#/${url}`;
   }
@@ -63,8 +65,9 @@ function openWindow(url: string, params: Record<string, string>) {
   // Object.entries(params).map(([key, value]) => {
   //   targetUrl.searchParams.set(key, value);
   // });
-  // 2. 新窗口打开外部链接
-  window.open(targetUrl, "_blank");
+  // 2. 新窗口打开。外链断开 opener、去掉 Referer，防止外部站点通过 window.opener 反向操作本页面；
+  // 内部页面保留 opener（复制 sessionStorage 带上登录态，且 isMainWindow() 依赖它判断非主窗口）
+  window.open(targetUrl, "_blank", external ? "noopener,noreferrer" : undefined);
   // 3. 当前标签页返回前一页
   setTimeout(() => {
     if (window.history.length > 1) {

@@ -94,7 +94,8 @@ export function useCommandPalette() {
     addHistory(item);
 
     if (isExternal(item.path)) {
-      window.open(item.path, "_blank");
+      // 外链断开 opener，防止外部站点通过 window.opener 反向操作本页面
+      window.open(item.path, "_blank", "noopener,noreferrer");
     } else {
       router.push({ path: item.path, query: item.params });
     }

@@ -1,12 +1,13 @@
 <template>
   <div class="logo">
     <transition enter-active-class="animate__animated animate__fadeInLeft">
-      <router-link :key="+collapse" class="wh-full flex-center" to="/">
+      <!-- Logo 仅作展示，不提供点击跳转 -->
+      <div :key="+collapse" class="wh-full flex-center">
         <img :src="logo" class="logo-image" />
         <span v-if="!collapse" class="title">
           {{ appConfig.title }}
         </span>
-      </router-link>
+      </div>
     </transition>
   </div>
 </template>
