@@ -10,9 +10,7 @@
         @click="openPopup"
       >
         <MenuIcon :icon="item.meta.icon" />
-        <span v-if="item.meta.title" class="ml-1">
-          {{ translateRouteTitle(item.meta.title) }}
-        </span>
+        <MenuTitle v-if="item.meta.title" :text="translateRouteTitle(item.meta.title)" />
       </el-menu-item>
       <AppLink
         v-else-if="item.meta"
@@ -24,9 +22,7 @@
       >
         <el-menu-item :index="basePath" :class="{ 'submenu-title-noDropdown': !isNest }">
           <MenuIcon :icon="item.meta.icon" />
-          <span v-if="item.meta.title" class="ml-1">
-            {{ translateRouteTitle(item.meta.title) }}
-          </span>
+          <MenuTitle v-if="item.meta.title" :text="translateRouteTitle(item.meta.title)" />
         </el-menu-item>
       </AppLink>
     </template>
@@ -36,9 +32,7 @@
       <template #title>
         <template v-if="item.meta">
           <MenuIcon :icon="item.meta.icon" />
-          <span v-if="item.meta.title" class="ml-1">
-            {{ translateRouteTitle(item.meta.title) }}
-          </span>
+          <MenuTitle v-if="item.meta.title" :text="translateRouteTitle(item.meta.title)" />
         </template>
       </template>
 
@@ -59,6 +53,7 @@ import { RouteRecordRaw } from "vue-router";
 import { isExternal, translateRouteTitle } from "@/utils";
 import { ElIcon } from "element-plus";
 import { openMenuPopup } from "../useLayout";
+import MenuTitle from "./MenuTitle.vue";
 
 defineOptions({
   name: "LayoutSidebarItem",
@@ -158,6 +153,7 @@ function resolvePath(routePath: string) {
   }
 
   [class^="i-svg:"] {
+    flex-shrink: 0; /* 标题过长出现省略号时，图标不能被压缩 */
     width: 18px;
     height: 18px;
     font-size: 18px;
