@@ -5,7 +5,7 @@ import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import AuthAPI, { type ModuleTreeDto } from "@/api/auth";
 import { isExternal } from "@/utils";
 import { getGlobalActions } from "@/micro/global-state";
-import { buildHostRoutePath, resolveMicroAppName } from "@/micro/config";
+import { buildHostRoutePath, isVisitorRoute, resolveMicroAppName } from "@/micro/config";
 
 /**
  * 菜单节点扩展类型（包含 target / fullscreen / params 字段）
@@ -86,6 +86,10 @@ export const usePermissionStore = defineStore("permission", () => {
       // 4. 注册动态路由（Requirements: 3.9）
       dynamicRoutes.forEach((route: RouteRecordRaw) => {
         removeDynamicRoutes.push(router.addRoute(toRegisterRoute(route)));
+      });
+      // 弹窗菜单的目标页面：新窗口按这个地址加载，宿主必须有对应路由，否则会被守卫判为 404
+      buildPopupTargetRoutes(menuNodes.value).forEach((route: RouteRecordRaw) => {
+        removeDynamicRoutes.push(router.addRoute(route));
       });
 
       // 5. 收集 moduleType === '005002' 的 moduleCode，写入 Global_State（Requirements: 3.10）
@@ -437,6 +441,46 @@ const transformRoutes = (menuData: RouteRecordRaw[]) => {
 
   return parsedRoutes;
 };
+
+/**
+ * 弹窗菜单的目标页面路由（仅注册到 router，不进入菜单展示）。
+ *
+ * 弹窗菜单本身的宿主 path 是不带子应用前缀的 /${moduleCode}（见 resolveMenuHostPath），
+ * 而它弹出的页面地址是带前缀的真实页面，如 /platform/logs/auth。新窗口按后者加载，
+ * 路由守卫在生成动态路由后会检查地址是否有匹配的路由，没有就进入 /error/404。
+ * 因此要为这个目标地址补一条根级 Layout 路由，页面本身由 qiankun 渲染（与根级子应用菜单一致）。
+ *
+ * 不处理的情况：
+ * - 外链、没有 microApp 的内部地址：不属于子应用页面
+ * - 访客页面（/<前缀>/visitor/**）：由静态的 MicroAppHost 路由承载，不能再套 Layout
+ * - 目标地址已被其他菜单注册，或多个弹窗菜单指向同一地址：避免重复注册
+ * 菜单已授权即视为有权打开其目标页面，与“菜单列表即页面白名单”的现有约定一致。
+ */
+function buildPopupTargetRoutes(nodes: MenuNode[]): RouteRecordRaw[] {
+  const occupied = new Set(nodes.map((node) => node.hostPath));
+  const result: RouteRecordRaw[] = [];
+  for (const node of nodes) {
+    if (!node.popup || !node.microApp || !node.url || isExternal(node.url)) continue;
+    // node.url 已补全子应用前缀；路由匹配只看 path，去掉可能带的查询串
+    const target = buildHostRoutePath(node.url.split("?")[0], node.microApp);
+    if (isVisitorRoute(target) || occupied.has(target)) continue;
+    occupied.add(target);
+    result.push({
+      path: target,
+      name: `${node.moduleCode}-popup-target`,
+      component: Layout,
+      meta: {
+        title: node.menuName,
+        hidden: true,
+        keepAlive: true,
+        microApp: node.microApp,
+        // 在新窗口里让对应的弹窗菜单项保持高亮
+        activeMenu: node.hostPath,
+      },
+    } as RouteRecordRaw);
+  }
+  return result;
+}
 
 /**
  * 转换成实际注册到 router 的路由记录（菜单展示仍使用转换前的路由）。
