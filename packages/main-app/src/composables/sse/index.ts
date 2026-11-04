@@ -16,6 +16,6 @@ export function disconnectSse() {
   useSse().disconnect();
 }
 
-export { useSse, cleanupSse, SseConnectionState } from "./useSse";
+export { useSse, cleanupSse, skipSseInNonMainWindow, SseConnectionState } from "./useSse";
 export { useNoticeSync } from "./useNoticeSync";
 export type { NoticeCallback } from "./useNoticeSync";

@@ -1,7 +1,7 @@
 import router from "@/router";
 import { useUserStoreHook } from "@/stores";
 import type { MsgInfoViewDto } from "@/api/message";
-import { useSse, cleanupSse } from "./useSse";
+import { useSse, cleanupSse, skipSseInNonMainWindow } from "./useSse";
 import { getGlobalActions } from "@/micro/global-state";
 import { startSseForwarding } from "@/micro/sse-bridge";
 
@@ -75,6 +75,10 @@ function createNoticeSyncComposable() {
   // ── 初始化 / 清理 ────────────────────────────────────
 
   const initialize = () => {
+    // 非主窗口没有 SSE 连接：不订阅事件、不转发给子应用，也不输出初始化日志
+    // （首次跳过时 skipSseInNonMainWindow 会输出一条“非主窗口，不创建 SSE 连接”）
+    if (skipSseInNonMainWindow()) return;
+
     // 只注册事件监听，不建立连接
     // 连接由登录成功后调用 useSse().connect() 统一触发
     unsubscribes = [
@@ -91,12 +95,14 @@ function createNoticeSyncComposable() {
   };
 
   const cleanup = () => {
+    const initialized = unsubscribes.length > 0;
     unsubscribes.forEach((unsub) => unsub());
     unsubscribes = [];
     notifyCallbacks.value = [];
     messageCallbacks.value = [];
     todoCallbacks.value = [];
-    console.info("[SSE] NoticeSync 销毁完成");
+    // 非主窗口没有初始化过，不输出“销毁完成”
+    if (initialized) console.info("[SSE] NoticeSync 销毁完成");
   };
 
   // ── 订阅接口 ─────────────────────────────────────────

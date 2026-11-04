@@ -3,8 +3,7 @@ import { AuthStorage } from "@/utils";
 import AuthAPI, { type UserAuthDto, type TokenDto, type TokenLoginParam } from "@/api/auth";
 import type { RouteRecordRaw } from "vue-router";
 import router from "@/router";
-import { isMainWindow } from "@/utils";
-import { useSse, cleanupSse, useNoticeSync } from "@/composables/sse";
+import { useSse, cleanupSse, useNoticeSync, skipSseInNonMainWindow } from "@/composables/sse";
 
 import { getGlobalActions } from "@/micro/global-state";
 
@@ -42,11 +41,10 @@ export const useUserStore = defineStore("user", () => {
     });
 
     // 登录成功后根据窗口类型决定是否建立 SSE 连接（Requirements 8.3, 8.4）
-    if (isMainWindow()) {
+    // 非主窗口跳过，并输出一条“非主窗口，不创建 SSE 连接”
+    if (!skipSseInNonMainWindow()) {
       useSse().connect();
       useNoticeSync().initialize();
-    } else {
-      console.warn("SSE 连接已跳过，当前窗口非主窗口：" + location.href);
     }
   }
 

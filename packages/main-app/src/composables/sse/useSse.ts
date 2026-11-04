@@ -44,6 +44,21 @@ export enum SseConnectionState {
 
 let globalInstance: ReturnType<typeof createSseConnection> | null = null;
 
+let nonMainWindowLogged = false;
+
+/**
+ * 非主窗口（弹窗、带 _ticket 的新窗口）不创建 SSE 连接，也不订阅事件，由主窗口统一持有连接。
+ * 返回 true 表示应当跳过；同一页面只在第一次跳过时输出一条日志，避免刷屏。
+ */
+export function skipSseInNonMainWindow(): boolean {
+  if (isMainWindow()) return false;
+  if (!nonMainWindowLogged) {
+    nonMainWindowLogged = true;
+    console.info("[SSE] 非主窗口，不创建 SSE 连接：" + location.href);
+  }
+  return true;
+}
+
 function createSseConnection(options: UseSseOptions = {}) {
   const baseUrl = import.meta.env.VITE_APP_BASE_API;
   const defaultUrl = `${baseUrl}${USER_BASE_URL}/v1/message/sse/subscribe`;
@@ -87,10 +102,7 @@ function createSseConnection(options: UseSseOptions = {}) {
     if (isManualDisconnect) return;
 
     // 非主窗口时跳过重连
-    if (!isMainWindow()) {
-      console.warn("SSE 连接已跳过，当前窗口非主窗口：" + location.href);
-      return;
-    }
+    if (skipSseInNonMainWindow()) return;
 
     if (config.maxReconnectAttempts > 0 && reconnectAttempts >= config.maxReconnectAttempts) {
       log(`已达到最大重试次数 ${config.maxReconnectAttempts}，停止重连`);
@@ -164,6 +176,9 @@ function createSseConnection(options: UseSseOptions = {}) {
   };
 
   const connect = () => {
+    // 非主窗口不创建连接（包括登录页、字典同步等所有入口）
+    if (skipSseInNonMainWindow()) return;
+
     // ⚠️ 必须先检查状态，再重置 isManualDisconnect，
     // 避免在已连接/连接中时提前 return 却已修改了标志位
     if (connectionState.value !== SseConnectionState.DISCONNECTED) {
@@ -313,6 +328,9 @@ function createSseConnection(options: UseSseOptions = {}) {
 
   // 订阅事件，返回取消函数
   const on = (eventName: string, handler: EventHandler): (() => void) => {
+    // 非主窗口没有连接，订阅没有意义：不登记处理器、不输出日志，返回空的取消函数
+    if (!isMainWindow()) return () => {};
+
     if (!eventHandlers.has(eventName)) {
       eventHandlers.set(eventName, new Set());
     }
