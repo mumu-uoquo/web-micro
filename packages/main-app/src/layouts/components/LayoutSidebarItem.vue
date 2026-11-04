@@ -2,8 +2,20 @@
   <div v-if="!item.meta || !item.meta.hidden">
     <!--【叶子节点】没有可见子菜单时，显示节点自身 -->
     <template v-if="!hasShowingChild">
+      <!-- 弹窗菜单：直接打开新窗口，不改变当前路由（当前页面和标签页保持不变） -->
+      <el-menu-item
+        v-if="item.meta?.target === 'window'"
+        :index="basePath"
+        :class="{ 'submenu-title-noDropdown': !isNest }"
+        @click="openPopup"
+      >
+        <MenuIcon :icon="item.meta.icon" />
+        <span v-if="item.meta.title" class="ml-1">
+          {{ translateRouteTitle(item.meta.title) }}
+        </span>
+      </el-menu-item>
       <AppLink
-        v-if="item.meta"
+        v-else-if="item.meta"
         :to="{
           path: basePath,
           query: item.meta.querys,
@@ -46,6 +58,7 @@ import path from "path-browserify";
 import { RouteRecordRaw } from "vue-router";
 import { isExternal, translateRouteTitle } from "@/utils";
 import { ElIcon } from "element-plus";
+import { openMenuPopup } from "../useLayout";
 
 defineOptions({
   name: "LayoutSidebarItem",
@@ -103,6 +116,15 @@ const props = defineProps({
 
 // 是否存在可见子节点
 const hasShowingChild = computed(() => (props.item.children ?? []).some((c) => !c.meta?.hidden));
+
+// 弹窗菜单：打开菜单的弹窗地址，不触发路由跳转。
+// meta.src 是已补全微前端前缀的地址（菜单配置的 menuUrl 是不含前缀的原始值），优先使用。
+// 参数与原先经 redirect.vue 弹窗时一致：未启用的参数（meta.querys）和启用的参数（meta.params）都带上
+function openPopup() {
+  const { menuUrl, src, querys, params } = props.item.meta ?? {};
+  const url = src || menuUrl;
+  if (url) openMenuPopup(url, { ...querys, ...params });
+}
 
 /**
  * 获取完整路径，适配外部链接

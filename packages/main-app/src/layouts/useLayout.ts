@@ -8,11 +8,40 @@ import { useWindowSize } from "@vueuse/core";
 import { useAppStore, usePermissionStore, useSettingsStore } from "@/stores";
 import { DeviceEnum } from "@/enums/settings/device.enum";
 import { defaults } from "@/settings";
-import { AuthStorage } from "@/utils";
+import { AuthStorage, isExternal } from "@/utils";
 import { writeTabTicket } from "@/utils";
 import type { MenuNode } from "@/stores/modules/permission.store";
 
 const DESKTOP_BREAKPOINT = 992;
+
+/**
+ * 构建查询字符串（仅包含 enabled=true 的参数）
+ */
+export function buildQueryString(params: MenuNode["params"]): string {
+  if (!params?.length) return "";
+  const parts = params
+    .filter((p) => p.enabled)
+    .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.val)}`);
+  return parts.length ? "?" + parts.join("&") : "";
+}
+
+/**
+ * 弹窗打开菜单地址，不执行路由跳转。
+ *
+ * 外链原样打开；内部路径按主应用的 Hash 路由拼成 origin/#/xxx（与 redirect.vue 的 openWindow 一致），
+ * 否则会被当成服务端路径打开。
+ */
+export function openMenuPopup(url: string, query: Record<string, string> = {}): void {
+  let target = url;
+  if (!isExternal(url)) {
+    target = `${window.location.origin}/#${url.startsWith("/") ? url : `/${url}`}`;
+  }
+  const search = new URLSearchParams(query).toString();
+  if (search) {
+    target += (target.includes("?") ? "&" : "?") + search;
+  }
+  window.open(target, "_blank", "noopener,noreferrer");
+}
 
 export function useLayout() {
   const route = useRoute();
@@ -94,17 +123,6 @@ export function useLayout() {
   // ============================================
 
   /**
-   * 构建查询字符串（仅包含 enabled=true 的参数）
-   */
-  function buildQueryString(params: MenuNode["params"]): string {
-    if (!params?.length) return "";
-    const parts = params
-      .filter((p) => p.enabled)
-      .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.val)}`);
-    return parts.length ? "?" + parts.join("&") : "";
-  }
-
-  /**
    * 处理菜单点击（四种场景，优先级从高到低）：
    * 1. popup=true → window.open 弹窗
    * 2. target='_blank' → Tab_Ticket + 新标签页
@@ -117,7 +135,10 @@ export function useLayout() {
 
     // 场景1：popup=true → 弹窗打开，不执行路由跳转
     if (node.popup) {
-      window.open(fullUrl, "_blank", "width=1200,height=800");
+      openMenuPopup(
+        node.url,
+        Object.fromEntries((node.params ?? []).filter((p) => p.enabled).map((p) => [p.key, p.val]))
+      );
       return;
     }
 

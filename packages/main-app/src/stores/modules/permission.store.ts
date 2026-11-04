@@ -20,6 +20,8 @@ export interface MenuNode {
   popup: boolean;
   url: string;
   path: string;
+  /** 宿主路由 path（含子应用前缀；弹窗 / 外链 iframe 不带前缀），与动态路由的 path 一致 */
+  hostPath: string;
   microApp?: string;
   params: { key: string; val: string; enabled: boolean }[] | null;
   children: MenuNode[];
@@ -44,6 +46,9 @@ export const usePermissionStore = defineStore("permission", () => {
   const permsInfo = useStorage<string[]>("permsInfo", []);
   // 扁平化的菜单节点列表（用于 path 查找）
   const menuNodes = ref<MenuNode[]>([]);
+  // 已注册动态路由的移除函数（router.addRoute 的返回值）。
+  // 根级 iframe / redirect 菜单会被包一层无名的 Layout 路由，无法按 name 移除，因此统一用移除函数。
+  const removeDynamicRoutes: Array<() => void> = [];
 
   /**
    * 获取后台动态路由数据，解析并注册到全局路由
@@ -80,7 +85,7 @@ export const usePermissionStore = defineStore("permission", () => {
 
       // 4. 注册动态路由（Requirements: 3.9）
       dynamicRoutes.forEach((route: RouteRecordRaw) => {
-        router.addRoute(route);
+        removeDynamicRoutes.push(router.addRoute(toRegisterRoute(route)));
       });
 
       // 5. 收集 moduleType === '005002' 的 moduleCode，写入 Global_State（Requirements: 3.10）
@@ -131,12 +136,7 @@ export const usePermissionStore = defineStore("permission", () => {
    */
   const resetRouter = (): void => {
     // 移除动态路由
-    const constantRouteNames = new Set(constantRoutes.map((route) => route.name).filter(Boolean));
-    routes.value.forEach((route: RouteRecordRaw) => {
-      if (route.name && !constantRouteNames.has(route.name)) {
-        router.removeRoute(route.name);
-      }
-    });
+    removeDynamicRoutes.splice(0).forEach((remove) => remove());
 
     // 重置状态
     routes.value = [...constantRoutes];
@@ -151,9 +151,7 @@ export const usePermissionStore = defineStore("permission", () => {
    */
   function findMenuByPath(path: string): MenuNode | undefined {
     const hostPath = buildHostRoutePath(path);
-    return menuNodes.value.find(
-      (node) => buildHostRoutePath(node.path, node.microApp) === hostPath
-    );
+    return menuNodes.value.find((node) => node.hostPath === hostPath);
   }
 
   /**
@@ -203,6 +201,80 @@ function hasRoutableDescendant(children?: ModuleTreeDto[]): boolean {
   );
 }
 
+type OpenTarget = "" | "window" | "iframe" | "redirect";
+
+/**
+ * 生成 /redirect/** 的跳转地址。
+ *
+ * url 填写的是应用内部路径，不含微前端前缀。带 microApp 时要补上子应用前缀，
+ * 才能命中宿主中注册的子应用菜单路由（宿主没有微应用路径的通配兜底）。
+ */
+function buildRedirectSrc(url: string, microApp?: string): string {
+  const isRedirectUrl = url.startsWith("/redirect/");
+  if (!microApp || !url) {
+    return isRedirectUrl ? url : `/redirect/${url}`;
+  }
+  // 已是 /redirect/xxx 形式时，先取出真正的目标地址
+  const dest = isRedirectUrl ? url.slice("/redirect".length) : url;
+  return `/redirect${buildHostRoutePath(dest, microApp)}`;
+}
+
+/**
+ * 菜单的打开方式：
+ * - window：popup=true，弹窗打开 url
+ * - iframe：url（或 path）是外链，在内容区内嵌
+ * - redirect：url 是内部路径且与 path 不同（或 path 本身是 /redirect/xxx），经 /redirect/** 跳转
+ * - ""：普通页面
+ */
+function resolveOpenTarget(
+  item: ModuleTreeDto,
+  microApp?: string
+): { target: OpenTarget; src: string } {
+  const src = item.url || item.path || "";
+  if (item.popup) {
+    // url 是应用内部路径（不含微前端前缀）。带 microApp 的内部页面必须补上前缀，
+    // 否则弹出的是主应用地址，而主应用不承载任何业务页面
+    const popupSrc = microApp && src && !isExternal(src) ? buildHostRoutePath(src, microApp) : src;
+    return { target: "window", src: popupSrc };
+  }
+  if (isExternal(src)) {
+    return { target: "iframe", src };
+  }
+  if (src !== item.path) {
+    return { target: "redirect", src: buildRedirectSrc(src, microApp) };
+  }
+  if (src.startsWith("/redirect/")) {
+    // path 本身就是 /redirect/xxx：无微应用时由 redirect.vue 直接解析 path；
+    // 带微应用时宿主 path 已改为 /${moduleCode}，目标需要显式补上子应用前缀
+    return { target: "redirect", src: microApp ? buildRedirectSrc(src, microApp) : "" };
+  }
+  return { target: "", src };
+}
+
+/**
+ * 菜单是否只在宿主中打开（弹窗 / 外链 iframe / 内部跳转），不会进入子应用
+ */
+function isHostOnlyMenu(item: ModuleTreeDto): boolean {
+  if (!hasRoutablePath(item)) return false;
+  return resolveOpenTarget(item).target !== "";
+}
+
+/**
+ * 菜单在宿主路由表中的 path。
+ *
+ * 普通子应用菜单带上子应用的 activeRule 前缀（如 /platform/xxx），由 qiankun 渲染。
+ * 弹窗 / 外链 iframe / 内部跳转由宿主自己渲染，不能带该前缀：否则地址命中 activeRule，会激活子应用并落到
+ * 子应用的 404，而且在 Layout 内会被 LayoutMain 当作微应用路由而不渲染宿主组件。
+ * 这类菜单用全局唯一的 moduleCode 作为宿主 path。
+ */
+function resolveMenuHostPath(item: ModuleTreeDto, microApp?: string): string {
+  if (microApp && item.moduleCode && isHostOnlyMenu(item)) {
+    return `/${item.moduleCode}`;
+  }
+  const microPath = hasRoutablePath(item) ? (item.path as string) : `/${item.moduleCode}`;
+  return buildHostRoutePath(microPath, microApp);
+}
+
 /**
  * 筛选菜单
  */
@@ -245,27 +317,12 @@ function parseMenuTree(
         { params: {} as Record<string, string>, querys: {} as Record<string, string> }
       );
       // 打开方式
-      let src = item.url || item.path || "";
-      let target = "";
-      if (item.popup) {
-        target = "window";
-      } else if (isExternal(src)) {
-        target = "iframe";
-      } else if (src !== item.path) {
-        target = "redirect";
-        if (!src.startsWith("/redirect/")) {
-          src = `/redirect/${src}`;
-        }
-      } else if (src.startsWith("/redirect/")) {
-        // 当 src == item.path 且以 /redirect/ 开头时
-        target = "redirect";
-        src = "";
-      }
+      const { target, src } = resolveOpenTarget(item, microApp);
       // 菜单：基本信息
       const info = {
         id: item.id,
         name: item.moduleCode,
-        path: buildHostRoutePath(microPath, microApp),
+        path: resolveMenuHostPath(item, microApp),
         redirect: "",
         component: target == "window" ? "" : parentId ? urls : "Layout",
         children: undefined,
@@ -327,8 +384,10 @@ function flattenMenuNodes(modules: ModuleTreeDto[], inheritedMicroApp?: string):
           visible: item.visible ?? true,
           sortIdx: item.sortIdx ?? 0,
           popup: item.popup ?? false,
-          url: item.url || item.path || "",
+          // 弹窗菜单的内部地址已补全微前端前缀，与路由 meta.src 保持一致
+          url: item.popup ? resolveOpenTarget(item, microApp).src : item.url || item.path || "",
           path: item.path,
+          hostPath: resolveMenuHostPath(item, microApp),
           microApp,
           params: (item.params as { key: string; val: string; enabled: boolean }[] | null) ?? null,
           children: [],
@@ -378,6 +437,35 @@ const transformRoutes = (menuData: RouteRecordRaw[]) => {
 
   return parsedRoutes;
 };
+
+/**
+ * 转换成实际注册到 router 的路由记录（菜单展示仍使用转换前的路由）。
+ *
+ * 根级的 iframe / redirect 叶子菜单在 transformRoutes 中会得到 Layout 组件，但没有子路由，
+ * Layout 的内容区（router-view）无页面可渲染，表现为空白页。这里补一个空 path 的子路由承载
+ * frame.vue / redirect.vue。name 放在子路由上，父路由不设 name，避免 vue-router 对
+ * “有名字的父路由 + 空 path 子路由” 的命名跳转只命中父路由。
+ */
+function toRegisterRoute(route: RouteRecordRaw): RouteRecordRaw {
+  const target = route.meta?.target;
+  const isRootLeaf = route.component === Layout && !route.children?.length;
+  if (!isRootLeaf || (target !== "iframe" && target !== "redirect")) {
+    return route;
+  }
+  return {
+    path: route.path,
+    component: Layout,
+    meta: route.meta,
+    children: [
+      {
+        path: "",
+        name: route.name,
+        component: target === "iframe" ? LayIframe : LayRedirect,
+        meta: route.meta,
+      },
+    ],
+  } as RouteRecordRaw;
+}
 
 /**
  * 按照路由中meta下的rank等级升序来排序路由

@@ -1,6 +1,19 @@
 import type { RouteRecordRaw } from "vue-router";
+import { MICRO_APP_CONFIGS } from "@/micro/config";
 
 const Layout = () => import("@/layouts/index.vue");
+
+/**
+ * 子应用的访客页面（/<子应用前缀>/visitor/**）：无需登录的全屏页面，不带主框架。
+ * 主应用不承载任何业务页面，这里只提供子应用的挂载容器，页面由 qiankun 加载子应用渲染。
+ * 路由守卫已对包含 /visitor/ 的路径放行（见 router/permission.ts）。
+ */
+const microVisitorRoutes: RouteRecordRaw[] = MICRO_APP_CONFIGS.map((config) => ({
+  path: `${config.activeRule}/visitor/:path(.*)*`,
+  name: `MicroVisitor-${config.name}`,
+  component: () => import("@/micro/MicroAppHost.vue"),
+  meta: { title: "visitor", hidden: true, microApp: config.name },
+}));
 
 export default [
   // 登录页面
@@ -36,4 +49,6 @@ export default [
     component: () => import("@/views/visitor/dynamic.vue"),
     meta: { title: "visitor", hidden: true },
   },
+  // 子应用访客页面：/platform/visitor/**、/operate/visitor/** 等
+  ...microVisitorRoutes,
 ] satisfies Array<RouteRecordRaw>;
