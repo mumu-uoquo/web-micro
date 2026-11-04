@@ -20,6 +20,7 @@ import "animate.css";
 
 // ===== 核心配置 =====
 import { createAppRouter, disposeAppRouter } from "./router/index";
+import { isVisitorEntry } from "./router/config";
 import { syncCachedViews } from "./router/cache";
 import { pinia } from "./stores";
 import { setupI18n, setLanguage } from "./plugins/i18n";
@@ -128,7 +129,8 @@ export async function bootstrap(): Promise<void> {
 export async function mount(props: QiankunProps): Promise<void> {
   // 主应用 props 为首选；共享认证存储作为防御性回退，避免生命周期时序导致误拒绝。
   const accessToken = props.token || AuthStorage.getAccessToken();
-  if (qiankunWindow.__POWERED_BY_QIANKUN__ && !accessToken) {
+  // 访客页面（/visitor/**）免登录：允许无 token 挂载，其余页面仍然拒绝
+  if (qiankunWindow.__POWERED_BY_QIANKUN__ && !accessToken && !isVisitorEntry()) {
     const msg = "[app-platform] 缺少 token，拒绝挂载";
     console.error(msg);
     return Promise.reject(new Error(msg));

@@ -1,6 +1,7 @@
 import { ElMessage } from "element-plus";
 import { AuthStorage, createHttpInstance } from "@/utils";
 import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
+import { isVisitorEntry } from "@/router/config";
 
 /**
  * app-platform 不直接刷新 Token。
@@ -43,6 +44,12 @@ export const http = createHttpInstance(
   },
   (message) => ElMessage({ message: message || "系统出错", grouping: true, type: "error" }),
   (reason, message) => {
+    // 访客页面（免登录）：不清理登录态也不跳转登录页，仅提示，由页面自行处理接口失败。
+    // 否则匿名访客调用任何需要令牌的接口，都会被踢到主应用登录页并整页刷新
+    if (isVisitorEntry()) {
+      ElMessage.warning(message || "该操作需要登录");
+      return;
+    }
     if (reason === "kick-out") {
       ElMessage.warning(message || "您的账号已在其他地方登录");
     }

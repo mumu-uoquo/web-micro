@@ -3,23 +3,10 @@
 import { createMemoryHistory, createRouter, createWebHashHistory, type Router } from "vue-router";
 import { qiankunWindow } from "vite-plugin-qiankun/dist/helper";
 import { AuthStorage } from "@/utils";
-import { HOST_ROUTE_PREFIX } from "./config";
+import { HOST_ROUTE_PREFIX, getChildRouteFromHostHash, isVisitorPath } from "./config";
 import { businessRoutes } from "./routes";
 
 let stopHostRouteBridge: (() => void) | null = null;
-
-/** 将宿主 /#/platform/** 地址转换为子应用内部地址。 */
-function getChildRouteFromHostHash(): string | null {
-  const hostFullPath = window.location.hash.slice(1) || "/";
-  if (hostFullPath === HOST_ROUTE_PREFIX) return "/";
-  if (hostFullPath.startsWith(`${HOST_ROUTE_PREFIX}?`)) {
-    return `/${hostFullPath.slice(HOST_ROUTE_PREFIX.length)}`;
-  }
-  if (hostFullPath.startsWith(`${HOST_ROUTE_PREFIX}/`)) {
-    return hostFullPath.slice(HOST_ROUTE_PREFIX.length);
-  }
-  return null;
-}
 
 function getHostHashFromChildRoute(fullPath: string): string {
   return `#${HOST_ROUTE_PREFIX}${fullPath === "/" ? "" : fullPath}`;
@@ -70,7 +57,7 @@ export function createAppRouter(_props?: unknown): Router {
   // 生产环境（qiankun）的登录态校验由主应用负责
   if (standaloneLoginEnabled) {
     router.beforeEach((to) => {
-      if (to.meta?.noAuth === true || to.path.includes("/visitor/")) return true;
+      if (to.meta?.noAuth === true || isVisitorPath(to.path)) return true;
       if (AuthStorage.getAccessToken()) return true;
       return { path: "/login", query: { redirect: to.fullPath } };
     });
