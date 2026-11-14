@@ -142,7 +142,7 @@ function getSignHeader(body: any) {
   const prefix = appid + token + language + nonce + device + time;
   const param = "";
   const bodystr = body ? JSON.stringify(body) : "";
-  const signature = encrypt.md5(prefix + param + bodystr + secret);
+  const signature = encrypt.sha256(prefix + param + bodystr + secret);
 
   return {
     token,

@@ -21,7 +21,7 @@
 
 - **Main_App**：主应用（基座），位于 `packages/main-app`，负责登录鉴权（含 MFA）、Layout 渲染、路由守卫、全局 Pinia store、子应用注册与生命周期管理。技术栈：Vue 3 + TypeScript + Vite + Pinia + Element Plus + vue-router v5。
 - **Sub_App**：业务子应用，即 `app-platform`（`packages/app-platform`），承载所有业务页面（dashboard、account、logs、message、system 等）；Sub_App 仅渲染内容区域，不渲染任何 Layout 外壳。
-- **Shared_Module**：公共模块（`packages/shared`），以 `@web-micro/shared` 包名发布，提供 HTTP 请求封装（含 token 刷新队列、签名机制）和 crypto 加解密工具（含时间因子 AES、RSA、MD5）。
+- **Shared_Module**：公共模块（`packages/shared`），以 `@web-micro/shared` 包名发布，提供 HTTP 请求封装（含 token 刷新队列、签名机制）和 crypto 加解密工具（含时间因子 AES、RSA、SHA-256，不使用 MD5）。
 - **Layout_Module**：原 `web-monolith/src/layouts/` 下的全套布局组件（LeftLayout、TopLayout、MixLayout、BaseLayout、frame、redirect 等），整体迁移至 Main_App，不做重写。
 - **Permission_Guard**：原 `web-monolith/src/router/permission.ts` 的路由守卫，迁移至 Main_App。白名单规则扩展为：路径属于固定白名单（`/login`、`/403`、`/404`），或路径中包含 `/visitor/` 片段（匹配主应用及各子应用的免登录入口），则直接放行，不校验登录状态。
 - **Qiankun_Runtime**：qiankun 微前端框架在运行时提供的沙箱、子应用注册、Global_State 通信和生命周期管理能力。
@@ -65,8 +65,8 @@
 
 #### 验收标准
 
-1. THE Shared_Module SHALL 将 `web-monolith/src/utils/crypto.ts` 完整复制到 `packages/shared/src/utils/crypto.ts`，保留全部导出（`encrypt.md5`、`encrypt.sha256`、`encrypt.aes`、`encrypt.taes`、`encrypt.rsa`、`encrypt.password`、`decrypt.aes`、`decrypt.taes`、`decrypt.rsa`），不得删改任何加解密逻辑。
-2. THE Shared_Module SHALL 将 `web-monolith/src/utils/http.ts` 迁移至 `packages/shared/src/utils/http.ts`，保留 `AxiosWithTokenRefresh` 类、Token_Refresh_Queue 机制、`generateSignature` 函数和文件下载处理逻辑；`useUserStoreHook` 的引用改为通过构造函数参数注入，不得直接 import 主应用 Pinia store。
+1. THE Shared_Module SHALL 将 `web-monolith/src/utils/crypto.ts` 复制到 `packages/shared/src/utils/crypto.ts`，保留导出（`encrypt.sha256`、`encrypt.aes`、`encrypt.taes`、`encrypt.rsa`、`encrypt.password`、`decrypt.aes`、`decrypt.taes`、`decrypt.rsa`），移除 `encrypt.md5`；除此之外不得删改加解密逻辑。`encrypt.password` SHALL 对明文密码直接做 RSA 加密，不再先做 MD5 处理。
+2. THE Shared_Module SHALL 将 `web-monolith/src/utils/http.ts` 迁移至 `packages/shared/src/utils/http.ts`，保留 `AxiosWithTokenRefresh` 类、Token_Refresh_Queue 机制、`generateSignature` 函数和文件下载处理逻辑；`generateSignature` 的签名算法 SHALL 为 `encrypt.sha256`（64 位小写十六进制），不再使用 MD5；`useUserStoreHook` 的引用改为通过构造函数参数注入，不得直接 import 主应用 Pinia store。
 3. WHEN 发起请求时，THE Shared_Module 的 HTTP 封装 SHALL 从 `AuthStorage.getAccessToken()` 读取 token 并附加到请求头 `Authorization: Bearer <token>` 和 `token` 头；IF token 为空字符串，SHALL 不添加 Authorization 头。
 4. THE Shared_Module SHALL 将 `web-monolith/src/utils/auth.ts` 中的 `AuthStorage` 对象和 `redirectToLogin` 函数迁移至 `packages/shared/src/utils/auth.ts`；`redirectToLogin` 中对 `router` 的引用改为通过函数参数注入，不直接 import 各应用路由实例。
 5. THE Shared_Module SHALL 将 `web-monolith/src/utils/common.ts` 中与 Pinia store 无关的函数（`guid`、`getRangeDate`、`assert`、`passwordComplex`）迁移至 `packages/shared/src/utils/common.ts`；依赖 Pinia store 的函数（`parseReturnCode`、`parseDictCode`）不迁入 Shared_Module。
@@ -85,7 +85,7 @@
 
 #### 验收标准
 
-1. THE Main_App SHALL 将 `web-monolith/src/views/login/` 目录整体复制至 `packages/main-app/src/views/login/`，保留登录页全部逻辑（账号密码表单、MFA 验证码步骤、记住我选项、RSA/AES 密码加密），只调整 import 路径，不重写业务逻辑。
+1. THE Main_App SHALL 将 `web-monolith/src/views/login/` 目录整体复制至 `packages/main-app/src/views/login/`，保留登录页全部逻辑（账号密码表单、MFA 验证码步骤、记住我选项、RSA/AES 密码加密），只调整 import 路径，不重写业务逻辑；登录表单的密码输入框 SHALL 限制最大长度为 32 位。
 2. THE Main_App SHALL 将 `web-monolith/src/layouts/` 目录整体复制至 `packages/main-app/src/layouts/`，包含 `LeftLayout.vue`、`TopLayout.vue`、`MixLayout.vue`、`BaseLayout.vue`、`frame.vue`、`redirect.vue`、`index.vue`、`useLayout.ts` 及 `components/` 子目录，不得重写任何布局组件。
 3. THE Main_App SHALL 将 `web-monolith/src/router/permission.ts` 复制至 `packages/main-app/src/router/permission.ts`，保留白名单数组（`/login`、`/403`、`/404`）和 `/visitor/` 前缀判断逻辑；相关 import 路径调整为指向 Main_App 的本地 store 和 router。
 4. THE Main_App SHALL 将 `web-monolith/src/stores/modules/` 下全部 store 模块（`app.store.ts`、`dict.store.ts`、`permission.store.ts`、`return-code.store.ts`、`settings.store.ts`、`tags-view.store.ts`、`tenant.store.ts`、`user.store.ts`）完整迁移至 `packages/main-app/src/stores/modules/`，不重写 store 逻辑，只调整 import 路径。
@@ -122,6 +122,7 @@
 8. IF `mount` 接收到的 `props` 中 `token` 字段为空字符串且当前为 Prod_Mode，THEN THE Sub_App SHALL reject Promise 并在控制台输出包含"缺少 token，拒绝挂载"的错误日志。
 9. THE Sub_App 的 Vite 配置 SHALL 设置 `build.lib.formats: ['umd']`，`build.lib.name: 'app-platform'`，以保证 qiankun 能通过 `window['app-platform']` 读取生命周期导出。
 10. THE Sub_App 的 Vite 开发服务器 SHALL 在响应头中返回 `Access-Control-Allow-Origin: *`，允许主应用跨域加载子应用资源。
+11. THE Sub_App SHALL 在所有密码输入项（新增用户、编辑用户、修改密码、重置密码、注册等表单）中限制密码最大长度为 32 位；超出时表单校验失败并提示，不得提交。
 11. WHEN 在 Sub_App 目录执行 `pnpm run build` 时，THE Sub_App SHALL 以退出码 0 完成构建，`dist/` 目录中存在 UMD 格式的 JS 产物文件。
 
 

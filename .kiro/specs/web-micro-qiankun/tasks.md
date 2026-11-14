@@ -39,8 +39,8 @@
     - _Requirements: 2.6, 2.8_
 
   - [x] 2.2 迁移 crypto.ts（完整复制）
-    - 将 `web-monolith/src/utils/crypto.ts` **完整复制**至 `packages/shared/src/utils/crypto.ts`，不修改任何加解密逻辑
-    - 确认保留全部导出：`encrypt.md5`、`encrypt.sha256`、`encrypt.aes`、`encrypt.taes`、`encrypt.rsa`、`encrypt.password`、`decrypt.aes`、`decrypt.taes`、`decrypt.rsa`
+    - 将 `web-monolith/src/utils/crypto.ts` 复制至 `packages/shared/src/utils/crypto.ts`，除移除 `encrypt.md5` 与改造 `encrypt.password`（明文直接 RSA）外不修改加解密逻辑
+    - 确认保留导出：`encrypt.sha256`、`encrypt.aes`、`encrypt.taes`、`encrypt.rsa`、`encrypt.password`、`decrypt.aes`、`decrypt.taes`、`decrypt.rsa`（`encrypt.md5` 已移除）；`encrypt.password` 改为对明文直接 RSA
     - 在 `packages/shared/src/index.ts` 中 re-export `encrypt` 和 `decrypt`
     - _Requirements: 2.1, 2.9, 2.10_
 
@@ -59,6 +59,7 @@
   - [x] 2.5 迁移并改造 http.ts（构造函数注入 UserStore）
     - 将 `web-monolith/src/utils/http.ts` 迁移至 `packages/shared/src/utils/http.ts`
     - 保留 `AxiosWithTokenRefresh` 类、Token_Refresh_Queue 机制、`generateSignature` 函数、文件下载处理逻辑
+    - `generateSignature` 签名算法由 MD5 改为 `encrypt.sha256`（64 位小写十六进制）；`main-app` 与 `web-monolith` 的 `useEventSource.ts` 的 `getSignHeader` 同步改用 SHA-256
     - 将 `useUserStoreHook()` 调用替换为构造函数参数 `userStore: UserStoreAdapter`；定义并导出 `UserStoreAdapter` 接口
     - 导出工厂函数 `createHttpInstance(config, userStore)`
     - 在 `packages/shared/src/index.ts` 中 re-export `createHttpInstance`、`UserStoreAdapter`

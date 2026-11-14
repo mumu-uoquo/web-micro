@@ -41,7 +41,7 @@ graph TB
 
     subgraph Shared["packages/shared（@web-micro/shared）"]
       SH_HTTP["AxiosWithTokenRefresh\nToken 刷新队列 + 签名"]
-      SH_Crypto["encrypt / decrypt\ntaes / rsa / md5 / aes"]
+      SH_Crypto["encrypt / decrypt\ntaes / rsa / sha256 / aes"]
       SH_Auth["AuthStorage / redirectToLogin"]
     end
   end
@@ -702,23 +702,31 @@ export const http = createHttpInstance({}, {
 
 `generateSignature` 从 `AuthStorage` 读取 token、appkey、secret、deviceId 生成请求签名，不依赖 Pinia store，可直接迁移，无需改造。
 
+签名算法为 `encrypt.sha256(前缀 + 参数串 + 请求体 + secret)`，输出 64 位小写十六进制字符串，写入请求头 `signature-app`。SSE 请求的 `getSignHeader` 使用相同算法。服务端需同步按 SHA-256 校验。
+
 ### 7.3 crypto.ts 复制说明
 
-`packages/shared/src/utils/crypto.ts` 为 **完整复制** `web-monolith/src/utils/crypto.ts`，保留：
+`packages/shared/src/utils/crypto.ts` 基于 `web-monolith/src/utils/crypto.ts` 复制，并按下述变更调整，保留以下导出：
 
 | 导出 | 功能 |
 |---|---|
-| `encrypt.md5(str)` | MD5 32 位小写十六进制 |
-| `encrypt.sha256(str)` | SHA256 64 位 |
+| `encrypt.sha256(str)` | SHA256 64 位小写十六进制（签名使用） |
 | `encrypt.aes(str, key)` | AES CBC/PKCS7 加密 |
 | `encrypt.taes(str)` | 时间因子 AES 加密（5 秒粒度） |
 | `encrypt.rsa(str, publicKey)` | RSA 公钥加密（Base64→Hex） |
-| `encrypt.password(pwd, rsaKey?)` | 密码加密：MD5 + RSA（降级 taes） |
+| `encrypt.password(pwd, rsaKey?)` | 密码加密：明文直接 RSA（降级 taes，同样对明文加密）；密码最长 32 位 |
 | `decrypt.aes(hex, key)` | AES 解密 |
 | `decrypt.taes(hex)` | 时间因子 AES 解密（±1 窗口重试） |
 | `decrypt.rsa(hex, publicKey)` | RSA 解密 |
 
-**不允许删改任何加解密逻辑**，避免服务端解密失败。
+本次迁移在 `web-monolith` 原版基础上做了以下变更，其余加解密逻辑保持不变：
+
+1. 移除 `encrypt.md5` 导出，代码中不再使用 MD5。
+2. 请求签名由 MD5 改为 SHA-256（见 7.2）。
+3. `encrypt.password` 不再先做 MD5，直接对明文密码做 RSA 加密；无公钥时降级 taes 同样对明文加密。
+4. 密码输入的最大长度为 32 位，超出时前端校验拦截。
+
+以上变更需要服务端同步支持，否则会导致签名校验和密码解密失败。
 
 ### 7.4 auth.ts 改造要点
 

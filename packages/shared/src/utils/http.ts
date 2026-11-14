@@ -74,7 +74,7 @@ export function generateSignature(param?: Record<string, any>, body?: any): Reco
       bodyStr = JSON.stringify(body);
     }
   }
-  const signature = encrypt.md5(prefix + paramStr + bodyStr + secret);
+  const signature = encrypt.sha256(prefix + paramStr + bodyStr + secret);
 
   return {
     token,
