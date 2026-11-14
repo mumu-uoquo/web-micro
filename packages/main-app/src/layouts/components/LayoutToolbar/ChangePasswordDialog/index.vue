@@ -114,7 +114,10 @@ const validateConfirmPassword = (
 };
 
 const formRules = reactive<FormRules<ChangePasswordFormData>>({
-  oldPassword: [{ required: true, message: "请输入当前密码", trigger: "blur" }],
+  oldPassword: [
+    { required: true, message: "请输入当前密码", trigger: "blur" },
+    { max: 32, message: "密码不能超过32位", trigger: "blur" },
+  ],
   newPassword: [
     { required: true, message: "请输入新密码", trigger: "blur" },
     {

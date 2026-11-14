@@ -28,6 +28,7 @@ message:
   password:
     required: "Please enter Password"
     min: "The password can not be less than 6 digits"
+    max: "The password can not exceed 32 digits"
     confirm: "Please confirm the password again"
     inconformity: "The two password entries are inconsistent"
   captchaCode:

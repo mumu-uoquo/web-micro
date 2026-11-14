@@ -11,7 +11,10 @@
       <el-form-item
         label="原密码"
         prop="oldPassword"
-        :rules="[{ required: true, message: '请输入原密码', trigger: 'blur' }]"
+        :rules="[
+          { required: true, message: '请输入原密码', trigger: 'blur' },
+          { max: 32, message: '密码不能超过32位', trigger: 'blur' },
+        ]"
       >
         <el-input
           v-model="formModel.oldPassword"
@@ -24,7 +27,10 @@
       <el-form-item
         label="新密码"
         prop="newPassword"
-        :rules="[{ required: true, message: '请输入新密码', trigger: 'blur' }]"
+        :rules="[
+          { required: true, message: '请输入新密码', trigger: 'blur' },
+          { max: 32, message: '密码不能超过32位', trigger: 'blur' },
+        ]"
       >
         <el-input
           v-model="formModel.newPassword"

@@ -133,6 +133,7 @@ const baseRules = reactive({
   password: [
     { required: true, trigger: "blur", message: t("login.message.password.required") },
     { min: 6, message: t("login.message.password.min"), trigger: "blur" },
+    { max: 32, message: t("login.message.password.max"), trigger: "blur" },
   ],
 });
 const captchaRule = reactive({

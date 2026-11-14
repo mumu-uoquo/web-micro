@@ -138,6 +138,7 @@ const formRules = reactive({
   password: [
     { required: true, trigger: "blur", message: t("login.bind.message.password.required") },
     { min: 6, trigger: "blur", message: t("login.message.password.min") },
+    { max: 32, trigger: "blur", message: t("login.message.password.max") },
   ],
 });
 

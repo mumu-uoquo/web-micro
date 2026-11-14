@@ -28,6 +28,7 @@ message:
   password:
     required: "请输入密码"
     min: "密码不能少于6位"
+    max: "密码不能超过32位"
     confirm: "请再次确认密码"
     inconformity: "两次密码输入不一致"
   captchaCode:

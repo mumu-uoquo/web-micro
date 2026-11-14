@@ -215,6 +215,7 @@ const rules = computed(() => ({
   password: [
     { required: true, trigger: "blur", message: t("login.message.password.required") },
     { min: 6, trigger: "blur", message: t("login.message.password.min") },
+    { max: 32, trigger: "blur", message: t("login.message.password.max") },
   ],
   confirmPassword: [
     { required: true, trigger: "blur", message: t("login.message.password.confirm") },
