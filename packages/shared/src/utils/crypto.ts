@@ -55,26 +55,11 @@ function _aesDecrypt(hex: string, key: string): string {
   return decrypted.toString(CryptoJS.enc.Utf8);
 }
 
-/**
- * MD5 底层实现
- */
-function _md5(str: string): string {
-  return CryptoJS.MD5(CryptoJS.enc.Utf8.parse(str)).toString(CryptoJS.enc.Hex);
-}
-
 // ─────────────────────────────────────────────
 // encrypt 命名空间
 // ─────────────────────────────────────────────
 
 export const encrypt = {
-  /**
-   * MD5 加密，返回 32 位小写十六进制字符串
-   * @param str 明文
-   */
-  md5(str: string): string {
-    return _md5(str);
-  },
-
   /**
    * SHA256 加密，返回 64 位小写十六进制字符串
    * @param str 明文
@@ -119,25 +104,23 @@ export const encrypt = {
 
   /**
    * 密码加密：
-   * 1. 先对密码做 MD5 处理，避免明文传输
-   * 2. 若提供了 RSA 公钥，则用 RSA 加密（安全性更高）
-   * 3. 否则降级为 taes（时间因子 AES）加密
+   * 1. 若提供了 RSA 公钥，则直接对明文密码做 RSA 加密
+   * 2. 否则降级为 taes（时间因子 AES）加密
    * @param password 明文密码
    * @param rsaPublicKey RSA 公钥（PEM 格式），来自 settingsStore.rsaPublicKey
    */
   password(password: string, rsaPublicKey?: string): string {
     if (!password) return "";
-    const hashed = _md5(password);
     // 优先尝试 RSA 加密
     if (rsaPublicKey) {
       try {
-        return encrypt.rsa(hashed, rsaPublicKey);
+        return encrypt.rsa(password, rsaPublicKey);
       } catch {
         // RSA 加密失败，降级到 taes
       }
     }
     // 降级：taes 加密
-    return _aesEncrypt(hashed, String(_getTimedKey()));
+    return _aesEncrypt(password, String(_getTimedKey()));
   },
 };
 
