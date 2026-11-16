@@ -88,39 +88,36 @@ export const encrypt = {
 
   /**
    * RSA 公钥加密，返回十六进制密文
+   * 没有公钥或 RSA 加密失败时，降级为 taes（时间因子 AES）加密
    * @param str 明文
-   * @param publicKey PEM 格式公钥
+   * @param publicKey PEM 格式公钥，可为空
    */
-  rsa(str: string, publicKey: string): string {
-    const jsEncrypt = new JSEncrypt();
-    jsEncrypt.setPublicKey(publicKey);
-    const base64 = jsEncrypt.encrypt(str);
-    if (base64 === false) {
-      throw new Error("RSA 加密失败，请检查公钥格式");
+  rsa(str: string, publicKey?: string): string {
+    if (publicKey) {
+      try {
+        const jsEncrypt = new JSEncrypt();
+        jsEncrypt.setPublicKey(publicKey);
+        const base64 = jsEncrypt.encrypt(str);
+        if (base64 !== false) {
+          // Base64 → Hex
+          return CryptoJS.enc.Base64.parse(base64).toString(CryptoJS.enc.Hex);
+        }
+      } catch {
+        // RSA 加密异常，降级到 taes
+      }
     }
-    // Base64 → Hex
-    return CryptoJS.enc.Base64.parse(base64).toString(CryptoJS.enc.Hex);
+    // 降级：taes 加密
+    return _aesEncrypt(str, String(_getTimedKey()));
   },
 
   /**
-   * 密码加密：
-   * 1. 若提供了 RSA 公钥，则直接对明文密码做 RSA 加密
-   * 2. 否则降级为 taes（时间因子 AES）加密
+   * 密码加密：直接对明文密码调用 encrypt.rsa，降级逻辑与 rsa 一致
    * @param password 明文密码
    * @param rsaPublicKey RSA 公钥（PEM 格式），来自 settingsStore.rsaPublicKey
    */
   password(password: string, rsaPublicKey?: string): string {
     if (!password) return "";
-    // 优先尝试 RSA 加密
-    if (rsaPublicKey) {
-      try {
-        return encrypt.rsa(password, rsaPublicKey);
-      } catch {
-        // RSA 加密失败，降级到 taes
-      }
-    }
-    // 降级：taes 加密
-    return _aesEncrypt(password, String(_getTimedKey()));
+    return encrypt.rsa(password, rsaPublicKey);
   },
 };
 

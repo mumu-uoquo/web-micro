@@ -713,7 +713,7 @@ export const http = createHttpInstance({}, {
 | `encrypt.sha256(str)` | SHA256 64 位小写十六进制（签名使用） |
 | `encrypt.aes(str, key)` | AES CBC/PKCS7 加密 |
 | `encrypt.taes(str)` | 时间因子 AES 加密（5 秒粒度） |
-| `encrypt.rsa(str, publicKey)` | RSA 公钥加密（Base64→Hex） |
+| `encrypt.rsa(str, publicKey?)` | RSA 公钥加密（Base64→Hex）；无公钥或加密失败时降级 taes（对明文加密） |
 | `encrypt.password(pwd, rsaKey?)` | 密码加密：明文直接 RSA（降级 taes，同样对明文加密）；密码最长 32 位 |
 | `decrypt.aes(hex, key)` | AES 解密 |
 | `decrypt.taes(hex)` | 时间因子 AES 解密（±1 窗口重试） |
