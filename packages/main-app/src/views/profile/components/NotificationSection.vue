@@ -101,6 +101,7 @@ import { reactive, ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import UserAPI from "@/api/user";
 import type { SettingDto, SettingSaveParam } from "@/api/user";
+import { decrypt } from "@/utils";
 
 /* ***************************** 配置映射 ********************************* */
 const SETTING_PREFIX = "notification.";
@@ -198,11 +199,27 @@ function settingsToForm(settings: SettingDto[]) {
   }
 }
 
+/**
+ * 对配置项的 configValue 做 taes 解密
+ * - 空值直接返回原值
+ * - 解密失败时降级返回原文
+ */
+function decryptSettings(settings: SettingDto[]): SettingDto[] {
+  return settings.map((item) => {
+    if (!item.configValue) return item;
+    try {
+      return { ...item, configValue: decrypt.taes(item.configValue) || item.configValue };
+    } catch {
+      return item;
+    }
+  });
+}
+
 async function loadSettings() {
   loading.value = true;
   try {
     const data = await UserAPI.listUserSettings({ prefix: SETTING_PREFIX });
-    settingsToForm(data ?? []);
+    settingsToForm(decryptSettings(data ?? []));
   } catch {
     // 加载失败使用默认值
   } finally {

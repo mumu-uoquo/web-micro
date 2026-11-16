@@ -296,7 +296,8 @@ import AppInfoAddForm from "./components/AppInfoAddForm.vue";
 import AppInfoEditForm from "./components/AppInfoEditForm.vue";
 import AppPermission from "./components/AppPermission.vue";
 import AppPushConfig from "./components/AppPushConfig.vue";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
+import { decrypt } from "@/utils";
 
 /* ***************************** 参数定义 ********************************* */
 // 表格显示的列
@@ -402,17 +403,49 @@ function handlePagSizeChange(val: number) {
   queryParams.pageSize = val;
 }
 
+/* ***************************** 数据解密 ********************************* */
+const settingsStore = useSettingsStore();
+
+/**
+ * 获取 AES 密钥（security.aes.key）
+ * 本页面可能不经过登录页直接打开，密钥为空时先加载公共配置
+ */
+async function ensureAesKey(): Promise<string> {
+  if (!settingsStore.aesKey) {
+    await settingsStore.loadServerSettings();
+  }
+  return settingsStore.aesKey;
+}
+
+/**
+ * 对接入应用的 appkey、secret 做 AES 解密
+ * - 密钥为空时不解密，直接返回原值
+ * - 解密失败时降级返回原文
+ */
+function decryptAppInfo(item: AppInfoDto, aesKey: string): AppInfoDto {
+  if (!aesKey) return item;
+  const decryptField = (value?: string) => {
+    if (!value) return value;
+    try {
+      return decrypt.aes(value, aesKey) || value;
+    } catch {
+      return value;
+    }
+  };
+  return { ...item, appkey: decryptField(item.appkey), secret: decryptField(item.secret) };
+}
+
 /**
  * 数据查询
  */
 function handleQuery() {
   tableLoading.value = true;
-  SystemAPI.listAppInfoByPage(queryParams)
-    .then((data) => {
+  Promise.all([SystemAPI.listAppInfoByPage(queryParams), ensureAesKey()])
+    .then(([data, aesKey]) => {
       tableDataTotal.value = data.total || 0;
       // 数据格式化
       tableData.value = data.result!.map((item: AppInfoDto) => {
-        const temp: AppTableItem = { ...item } as AppTableItem;
+        const temp: AppTableItem = { ...decryptAppInfo(item, aesKey) } as AppTableItem;
         if (
           item.templateType != DictionaryEnum.TEMPLATE_TYPE_NORMAL &&
           item.templateType != DictionaryEnum.TEMPLATE_TYPE_NONE
